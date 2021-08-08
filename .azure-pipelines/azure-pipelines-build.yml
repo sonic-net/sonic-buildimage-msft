@@ -68,6 +68,8 @@ jobs:
           timeoutInMinutes: 2160
           variables:
             PLATFORM_ARCH: arm64
+        - name: cisco-8000
+          pool: sonic-image-builder
 
         - name: generic
           variables:

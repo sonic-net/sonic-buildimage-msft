@@ -8,9 +8,6 @@ schedules:
   displayName: Daily midnight build
   branches:
     include:
-    - master
-    - 202106
-    - 202012
     - 202106
   always: true
 - cron: "0 4 * * *"
@@ -25,7 +22,7 @@ pr: none
 
 stages:
 - stage: Build
-  pool: sonicbld
+  pool: sonic-image-builder
   variables:
     CACHE_MODE: wcache
     ${{ if eq(variables['Build.SourceBranchName'], '202012') }}:

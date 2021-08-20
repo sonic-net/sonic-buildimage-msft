@@ -1,0 +1,55 @@
+pr: none
+trigger: none
+
+schedules:
+- cron: "0 0 * * *"
+  displayName: Daily
+  branches:
+    include:
+    - 202106
+  always: true
+
+pool:
+      vmImage: ubuntu-20.04
+
+steps:
+  - checkout: self
+    clean: true
+    persistCredentials: true
+  - bash: |
+      FAILED=""
+      git remote add target http://github.com/azure/sonic-buildimage
+      git remote update || exit 1
+      git config --global user.email "svc-acs@microsoft.com"
+      git config --global user.name "Sonic Automation"
+
+      target_branches="202106"
+      for branch in $target_branches; do
+        base_branch=${branch}
+        target_branch=${branch}
+
+        git ls-remote origin refs/heads/${base_branch} &> /dev/null || continue
+
+        echo "-------Start merging. branch: ${base_branch}-------"
+        git checkout -b ${base_branch} --track origin/${base_branch}
+        curr_tag="${base_branch}-`date '+%Y%m%d-%H%M'`.pre-merge"
+        post_tag="${base_branch}-`date '+%Y%m%d-%H%M'`.post-merge"
+        git tag ${curr_tag}
+
+        git pull target ${target_branch} --no-edit || { git merge --abort;FAILED="${FAILED} ${base_branch}"; continue; }
+
+        head_tag=`git tag --contains HEAD`
+        tem=`echo ${head_tag} | grep ${curr_tag}`
+        if [[ ${tem} != "" ]];then
+          echo "======No change after rebasing ...======"
+          continue
+        else
+          git tag ${post_tag} || { FAILED="${FAILED} ${base_branch}"; continue; }
+        fi
+        git push origin ${base_branch} || { FAILED="${FAILED} ${base_branch}"; continue; }
+      done
+
+      if [[ ${FAILED} != "" ]];then
+        echo "============Failed to merge following branches: ${FAILED} ...============"
+        exit 1
+      fi

@@ -351,7 +351,7 @@ class Component(ComponentBase):
             return FW_AUTO_ERR_IMAGE
 
         if boot_action in default_supported_boot:
-            if self.install_firmware(image_path):
+            if self.update_firmware(image_path):
                 # Successful update
                 return FW_AUTO_INSTALLED
             # Failed update (unknown reason)
@@ -404,10 +404,6 @@ class Component(ComponentBase):
         if self.image_ext_name is not None:
             if name_list[1] != self.image_ext_name:
                 print("ERROR: Extend name of file {} is wrong. Image for {} should have extend name {}".format(image_path, self.name, self.image_ext_name))
-                return False
-        else:
-            if name_list[1]:
-                print("ERROR: Extend name of file {} is wrong. Image for {} shouldn't have extension".format(image_path, self.name))
                 return False
 
         return True
@@ -520,7 +516,7 @@ class ComponentSSD(Component):
             return FW_AUTO_ERR_UKNOWN
 
         if boot_action in supported_boot:
-            if self.install_firmware(image_path):
+            if self.update_firmware(image_path):
                 # Successful update
                 return FW_AUTO_INSTALLED
             # Failed update (unknown reason)

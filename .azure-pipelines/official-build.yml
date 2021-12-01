@@ -22,7 +22,7 @@ pr: none
 
 stages:
 - stage: Build
-  pool: sonic-image-builder
+  pool: sonicbld
   variables:
     CACHE_MODE: wcache
     ${{ if eq(variables['Build.SourceBranchName'], '202012') }}:

@@ -17,18 +17,21 @@ steps:
     clean: true
     persistCredentials: true
   - bash: |
+      set -x
       FAILED=""
       git remote add target http://github.com/azure/sonic-buildimage
       git remote update || exit 1
       git config --global user.email "svc-acs@microsoft.com"
       git config --global user.name "Sonic Automation"
+      git config pull.rebase false
 
-      target_branches="202106"
+      target_branches="202106 202111"
       for branch in $target_branches; do
         base_branch=${branch}
         target_branch=${branch}
 
         git ls-remote origin refs/heads/${base_branch} &> /dev/null || continue
+        git ls-remote target refs/heads/${base_branch} &> /dev/null || continue
 
         echo "-------Start merging. branch: ${base_branch}-------"
         git checkout -b ${base_branch} --track origin/${base_branch}

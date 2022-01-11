@@ -49,7 +49,7 @@ steps:
         else
           git tag ${post_tag} || { FAILED="${FAILED} ${base_branch}"; continue; }
         fi
-        git push origin ${base_branch} || { FAILED="${FAILED} ${base_branch}"; continue; }
+        git push https://$(PAT)@github.com/Azure/sonic-buildimage-msft.git HEAD:${base_branch} || { FAILED="${FAILED} ${base_branch}"; continue; }
       done
 
       if [[ ${FAILED} != "" ]];then

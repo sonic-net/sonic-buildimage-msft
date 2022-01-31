@@ -257,7 +257,7 @@ class sfp_event:
         found = 0
 
         try:
-            read, _, _ = select.select([self.rx_fd_p.fd], [], [], timeout)
+            read, _, _ = select.select([self.rx_fd_p.fd], [], [], float(timeout) / 1000)
             print(read)
         except select.error as err:
             rc, msg = err
@@ -367,7 +367,7 @@ class sfp_event:
                         label_port = slot_id * DeviceDataManager.get_linecard_max_port_count() + x + 1
                         break
 
-                    if port_attributes.port_mapping.slot_id == slot_id:
+                    if port_attributes.port_mapping.slot == slot_id:
                         x += 1
 
                 if label_port is not None:

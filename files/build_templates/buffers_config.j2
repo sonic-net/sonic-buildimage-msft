@@ -101,9 +101,7 @@ def
     {%- endif %}
 {%- else %}
     {%- for port in PORT %}
-        {%- if not port.startswith('Ethernet-Rec') and not port.startswith('Ethernet-IB') %}
-            {%- if PORT_ALL.append(port) %}{%- endif %}
-        {%- endif %}
+        {%- if PORT_ALL.append(port) %}{%- endif %}
     {%- endfor %}
 {%- endif %}
 

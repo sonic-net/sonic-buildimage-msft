@@ -1,10 +1,11 @@
+{% set prefix = DEFAULT_CONTAINER_REGISTRY %}
 {% from "dockers/dockerfile-macros.j2" import install_debian_packages, install_python_wheels, copy_files %}
 {% if CONFIGURED_ARCH == "armhf" and MULTIARCH_QEMU_ENVIRON == "y" %}
-FROM multiarch/debian-debootstrap:armhf-buster
+FROM {{ prefix }}multiarch/debian-debootstrap:armhf-buster
 {% elif CONFIGURED_ARCH == "arm64" and MULTIARCH_QEMU_ENVIRON == "y" %}
-FROM multiarch/debian-debootstrap:arm64-buster
+FROM {{ prefix }}multiarch/debian-debootstrap:arm64-buster
 {% else %}
-FROM {{DOCKER_BASE_ARCH}}/debian:buster
+FROM {{ prefix }}{{DOCKER_BASE_ARCH}}/debian:buster
 {% endif %}
 
 # Clean documentation in FROM image
@@ -120,7 +121,7 @@ RUN apt-get -y purge   \
 RUN apt-get clean -y                     && \
     apt-get autoclean -y                 && \
     apt-get autoremove -y                && \
-    rm -rf /var/lib/apt/lists/* /tmp/*
+    rm -rf /var/lib/apt/lists/* /tmp/* ~/.cache/
 
 COPY ["etc/rsyslog.conf", "/etc/rsyslog.conf"]
 COPY ["etc/rsyslog.d/*", "/etc/rsyslog.d/"]

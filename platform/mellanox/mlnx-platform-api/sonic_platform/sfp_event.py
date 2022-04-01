@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2021 NVIDIA CORPORATION & AFFILIATES.
+# Copyright (c) 2019-2022 NVIDIA CORPORATION & AFFILIATES.
 # Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -257,7 +257,7 @@ class sfp_event:
         found = 0
 
         try:
-            read, _, _ = select.select([self.rx_fd_p.fd], [], [], timeout)
+            read, _, _ = select.select([self.rx_fd_p.fd], [], [], float(timeout) / 1000)
             print(read)
         except select.error as err:
             rc, msg = err
@@ -360,15 +360,11 @@ class sfp_event:
                 logical_port = sx_port_log_id_t_arr_getitem(logical_port_list, i)
                 rc = sx_api_port_device_get(self.handle, 1 , 0, port_attributes_list,  port_cnt_p)
                 port_cnt = uint32_t_p_value(port_cnt_p)
-                x = 0 # x is the port index within a LC
                 for i in range(port_cnt):
                     port_attributes = sx_port_attributes_t_arr_getitem(port_attributes_list,i)
                     if port_attributes.log_port == logical_port:
-                        label_port = slot_id * DeviceDataManager.get_linecard_max_port_count() + x + 1
+                        label_port = slot_id * DeviceDataManager.get_linecard_max_port_count() + port_attributes.port_mapping.module_port
                         break
-
-                    if port_attributes.port_mapping.slot_id == slot_id:
-                        x += 1
 
                 if label_port is not None:
                     label_port_list.append(label_port)

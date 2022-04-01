@@ -12,7 +12,7 @@ import signal
 import jinja2
 from sonic_py_common import device_info
 from swsscommon.swsscommon import SubscriberStateTable, DBConnector, Select
-from swsscommon.swsscommon import ConfigDBConnector, TableConsumable
+from swsscommon.swsscommon import ConfigDBConnector, TableConsumable, Table
 
 # FILE
 PAM_AUTH_CONF = "/etc/pam.d/common-auth-sonic"
@@ -25,6 +25,10 @@ PAM_RADIUS_AUTH_CONF_TEMPLATE = "/usr/share/sonic/templates/pam_radius_auth.conf
 NSS_CONF = "/etc/nsswitch.conf"
 ETC_PAMD_SSHD = "/etc/pam.d/sshd"
 ETC_PAMD_LOGIN = "/etc/pam.d/login"
+PAM_LIMITS_CONF_TEMPLATE = "/usr/share/sonic/templates/pam_limits.j2"
+LIMITS_CONF_TEMPLATE = "/usr/share/sonic/templates/limits.conf.j2"
+PAM_LIMITS_CONF = "/etc/pam.d/pam-limits-conf"
+LIMITS_CONF = "/etc/security/limits.conf"
 
 # TACACS+
 TACPLUS_SERVER_PASSKEY_DEFAULT = ""
@@ -41,6 +45,7 @@ RADIUS_PAM_AUTH_CONF_DIR = "/etc/pam_radius_auth.d/"
 
 # MISC Constants
 CFG_DB = "CONFIG_DB"
+STATE_DB = "STATE_DB"
 HOSTCFGD_MAX_PRI = 10  # Used to enforce ordering b/w daemons under Hostcfgd
 DEFAULT_SELECT_TIMEOUT = 1000
 
@@ -166,16 +171,23 @@ class FeatureHandler(object):
     SYSTEMD_SYSTEM_DIR = '/etc/systemd/system/'
     SYSTEMD_SERVICE_CONF_DIR = os.path.join(SYSTEMD_SYSTEM_DIR, '{}.service.d/')
 
-    def __init__(self, config_db, device_config):
+    # Feature state constants
+    FEATURE_STATE_ENABLED = "enabled"
+    FEATURE_STATE_DISABLED = "disabled"
+    FEATURE_STATE_FAILED = "failed"
+
+    def __init__(self, config_db, feature_state_table, device_config):
         self._config_db = config_db
+        self._feature_state_table = feature_state_table
         self._device_config = device_config
         self._cached_config = {}
         self.is_multi_npu = device_info.is_multi_npu()
 
     def handle(self, feature_name, op, feature_cfg):
         if not feature_cfg:
-            self._cached_config.pop(feature_name)
             syslog.syslog(syslog.LOG_INFO, "Deregistering feature {}".format(feature_name))
+            self._cached_config.pop(feature_name)
+            self._feature_state_table._del(feature_name)
             return
 
         feature = Feature(feature_name, feature_cfg, self._device_config)
@@ -253,7 +265,6 @@ class FeatureHandler(object):
         return True
 
     def update_feature_auto_restart(self, feature, feature_name):
-
         dir_name = self.SYSTEMD_SERVICE_CONF_DIR.format(feature_name)
         auto_restart_conf = os.path.join(dir_name, 'auto_restart.conf')
 
@@ -341,7 +352,10 @@ class FeatureHandler(object):
                 except Exception as err:
                     syslog.syslog(syslog.LOG_ERR, "Feature '{}.{}' failed to be enabled and started"
                                     .format(feature.name, feature_suffixes[-1]))
+                    self.set_feature_state(feature, self.FEATURE_STATE_FAILED)
                     return
+
+        self.set_feature_state(feature, self.FEATURE_STATE_ENABLED)
 
     def disable_feature(self, feature):
         cmds = []
@@ -363,10 +377,16 @@ class FeatureHandler(object):
                 except Exception as err:
                     syslog.syslog(syslog.LOG_ERR, "Feature '{}.{}' failed to be stopped and disabled"
                                     .format(feature.name, feature_suffixes[-1]))
+                    self.set_feature_state(feature, self.FEATURE_STATE_FAILED)
                     return
+
+        self.set_feature_state(feature, self.FEATURE_STATE_DISABLED)
 
     def resync_feature_state(self, feature):
         self._config_db.mod_entry('FEATURE', feature.name, {'state': feature.state})
+
+    def set_feature_state(self, feature, state):
+        self._feature_state_table.set(feature.name, [('state', state)])
 
 
 class Iptables(object):
@@ -914,14 +934,14 @@ class NtpCfg(object):
         new_src = data.get('src_intf', '')
         new_src_set = set(new_src.split(";"))
         new_vrf = data.get('vrf', '')
-        
+
         # Update the Local Cache
         self.ntp_global = data
 
         # check if ntp server configured, if not, do nothing
         if not self.ntp_servers:
             syslog.syslog(syslog.LOG_INFO, "No ntp server when global config change, do nothing")
-            return 
+            return
 
         if orig_src_set != new_src_set:
             syslog.syslog(syslog.LOG_INFO, "ntp global update for source intf old {} new {}, restarting ntp-config"
@@ -950,6 +970,64 @@ class NtpCfg(object):
             syslog.syslog(syslog.LOG_INFO, 'ntp server update, restarting ntp-config, ntp servers configured {}'.format(self.ntp_servers))
             run_cmd(cmd)
 
+class PamLimitsCfg(object):
+    """
+    PamLimit Config Daemon
+    1) The pam_limits PAM module sets limits on the system resources that can be obtained in a user-session.
+    2) Purpose of this daemon is to render pam_limits config file.
+    """
+    def __init__(self, config_db):
+        self.config_db = config_db
+        self.hwsku = ""
+        self.type = ""
+
+    # Load config from ConfigDb and render config file/
+    def update_config_file(self):
+        device_metadata = self.config_db.get_table('DEVICE_METADATA')
+        if "localhost" not in device_metadata:
+            return
+
+        self.read_localhost_config(device_metadata["localhost"])
+        self.render_conf_file()
+
+    # Read localhost config
+    def read_localhost_config(self, localhost):
+        if "hwsku" in localhost:
+            self.hwsku = localhost["hwsku"]
+        else:
+            self.hwsku = ""
+
+        if "type" in localhost:
+            self.type = localhost["type"]
+        else:
+            self.type = ""
+
+    # Render pam_limits config files
+    def render_conf_file(self):
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader('/'), trim_blocks=True)
+        env.filters['sub'] = sub
+
+        try:
+            template_file = os.path.abspath(PAM_LIMITS_CONF_TEMPLATE)
+            template = env.get_template(template_file)
+            pam_limits_conf = template.render(
+                                        hwsku=self.hwsku,
+                                        type=self.type)
+            with open(PAM_LIMITS_CONF, 'w') as f:
+                f.write(pam_limits_conf)
+
+            template_file = os.path.abspath(LIMITS_CONF_TEMPLATE)
+            template = env.get_template(template_file)
+            limits_conf = template.render(
+                                        hwsku=self.hwsku,
+                                        type=self.type)
+            with open(LIMITS_CONF, 'w') as f:
+                f.write(limits_conf)
+        except Exception as e:
+            syslog.syslog(syslog.LOG_ERR,
+                    "modify pam_limits config file failed with exception: {}"
+                    .format(e))
+
 class HostConfigDaemon:
     def __init__(self):
         # Just a sanity check to verify if the CONFIG_DB has been initialized
@@ -957,12 +1035,15 @@ class HostConfigDaemon:
         self.config_db = ConfigDBConnector()
         self.config_db.connect(wait_for_init=True, retry_on=True)
         self.dbconn = DBConnector(CFG_DB, 0)
+        self.state_db_conn = DBConnector(STATE_DB, 0)
         self.selector = Select()
         syslog.syslog(syslog.LOG_INFO, 'ConfigDB connect success')
 
         self.select = Select()
         self.callbacks = dict()
         self.subscriber_map = dict()
+
+        feature_state_table = Table(self.state_db_conn, 'FEATURE')
 
         # Load DEVICE metadata configurations
         self.device_config = {}
@@ -976,7 +1057,7 @@ class HostConfigDaemon:
         self.iptables = Iptables()
 
         # Intialize Feature Handler
-        self.feature_handler = FeatureHandler(self.config_db, self.device_config)
+        self.feature_handler = FeatureHandler(self.config_db, feature_state_table, self.device_config)
         self.feature_handler.sync_state_field()
 
         # Initialize Ntp Config Handler
@@ -987,7 +1068,10 @@ class HostConfigDaemon:
         # Initialize AAACfg
         self.hostname_cache=""
         self.aaacfg = AaaCfg()
-        
+
+        # Initialize PamLimitsCfg
+        self.pamLimitsCfg = PamLimitsCfg(self.config_db)
+        self.pamLimitsCfg.update_config_file()
 
     def load(self):
         aaa = self.config_db.get_table('AAA')
@@ -1004,7 +1088,7 @@ class HostConfigDaemon:
                     self.hostname_cache = dev_meta['localhost']['hostname']
         except Exception as e:
             pass
-        
+
         # Update AAA with the hostname
         self.aaacfg.hostname_update(self.hostname_cache)
 
@@ -1130,7 +1214,7 @@ class HostConfigDaemon:
         self.subscribe('VLAN_SUB_INTERFACE', lambda table, key, op, data: self.vlan_sub_intf_handler(key, op, data), HOSTCFGD_MAX_PRI-5)
         self.subscribe('PORTCHANNEL_INTERFACE', lambda table, key, op, data: self.portchannel_intf_handler(key, op, data), HOSTCFGD_MAX_PRI-5)
         self.subscribe('INTERFACE', lambda table, key, op, data: self.phy_intf_handler(key, op, data), HOSTCFGD_MAX_PRI-5)
-        
+
         syslog.syslog(syslog.LOG_INFO,
                       "Waiting for systemctl to finish initialization")
         self.wait_till_system_init_done()

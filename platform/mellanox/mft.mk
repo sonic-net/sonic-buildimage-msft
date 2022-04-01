@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016-2021 NVIDIA CORPORATION & AFFILIATES.
+# Copyright (c) 2016-2022 NVIDIA CORPORATION & AFFILIATES.
 # Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,8 @@
 #
 # Mellanox SAI
 
-MFT_VERSION = 4.17.2
-MFT_REVISION = 12
+MFT_VERSION = 4.18.0
+MFT_REVISION = 106
 
 export MFT_VERSION MFT_REVISION
 

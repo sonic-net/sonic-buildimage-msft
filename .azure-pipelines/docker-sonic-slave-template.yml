@@ -3,6 +3,13 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 # Build and push sonic-slave-[buster|jessie|stretch] images for amd64/armhf/arm64
+resources:
+  repositories:
+  - repository: buildimage
+    type: github
+    name: Azure/sonic-buildimage
+    ref: master
+    endpoint: build
 
 parameters:
 - name: arch
@@ -38,6 +45,7 @@ jobs:
   pool: ${{ parameters.pool }}
   steps:
   - template: cleanup.yml
+  - template: .azure-pipelines/template-clean-sonic-slave.yml@buildimage
   - checkout: self
     clean: true
     submodules: recursive
@@ -68,16 +76,6 @@ jobs:
         BUILD_OPTIONS = 'SONIC_VERSION_CONTROL_COMPONENTS=deb,py2,py3,web,git,docker'
       fi
 
-      containers=$(docker container ls | grep "sonic-slave" | awk '{ print $1 }')
-      if [ ! -z "$containers" ]; then
-        docker container kill $containers || true
-        sleep 5
-      fi
-      images=$(docker images 'sonic-slave-*' -a -q)
-      if [ ! -z "$images" ]; then
-        docker rmi -f $images
-      fi
-
       tmpfile=$(mktemp)
 
       echo ${{ parameters.arch }} > .arch
@@ -90,6 +88,10 @@ jobs:
 
       docker tag $SLAVE_BASE_IMAGE:$SLAVE_BASE_TAG $REGISTRY_SERVER/$SLAVE_BASE_IMAGE_UPLOAD:latest
       docker tag $SLAVE_BASE_IMAGE:$SLAVE_BASE_TAG $REGISTRY_SERVER/$SLAVE_BASE_IMAGE_UPLOAD:$SLAVE_BASE_TAG
+      if [ "$SLAVE_BASE_IMAGE_UPLOAD" != "$SLAVE_DIR" ]; then
+        docker tag $SLAVE_BASE_IMAGE:$SLAVE_BASE_TAG $REGISTRY_SERVER/$SLAVE_DIR:latest-${{ parameters.arch }}
+        docker tag $SLAVE_BASE_IMAGE:$SLAVE_BASE_TAG $REGISTRY_SERVER/$SLAVE_DIR:$SLAVE_BASE_TAG
+      fi
       set +x
       echo "##vso[task.setvariable variable=VARIABLE_SLAVE_BASE_IMAGE]$SLAVE_BASE_IMAGE_UPLOAD"
       echo "##vso[task.setvariable variable=VARIABLE_SLAVE_BASE_TAG]$SLAVE_BASE_TAG"
@@ -98,6 +100,7 @@ jobs:
     displayName: Build sonic-slave-${{ parameters.dist }}-${{ parameters.arch }}
 
   - task: Docker@2
+    condition: ne(variables['Build.Reason'], 'PullRequest')
     displayName: Upload image
     inputs:
       containerRegistry: ${{ parameters.registry_conn }}
@@ -106,3 +109,13 @@ jobs:
       tags: |
         $(VARIABLE_SLAVE_BASE_TAG)
         latest
+  - ${{ if ne(parameters.arch, 'amd64') }}:
+    - task: Docker@2
+      condition: ne(variables['Build.Reason'], 'PullRequest')
+      displayName: Upload image ${{ parameters.dist }}
+      inputs:
+        containerRegistry: ${{ parameters.registry_conn }}
+        repository: "sonic-slave-${{ parameters.dist }}"
+        command: push
+        tags: |
+          $(VARIABLE_SLAVE_BASE_TAG) 

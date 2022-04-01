@@ -1,6 +1,7 @@
 include $(PLATFORM_PATH)/platform-modules-arista.mk
 include $(PLATFORM_PATH)/platform-modules-bfn.mk
 include $(PLATFORM_PATH)/platform-modules-bfn-montara.mk
+include $(PLATFORM_PATH)/platform-modules-accton.mk
 include $(PLATFORM_PATH)/platform-modules-bfn-newport.mk
 include $(PLATFORM_PATH)/platform-modules-wnc-osw1800.mk
 include $(PLATFORM_PATH)/platform-modules-ingrasys.mk
@@ -24,7 +25,8 @@ $(SYNCD)_DEPENDS += $(BFN_SAI) $(BFN_INGRASYS_PLATFORM) $(BFN_PLATFORM)
 $(SYNCD)_UNINSTALLS += $(BFN_SAI)
 
 ifeq ($(ENABLE_SYNCD_RPC),y)
-$(SYNCD)_DEPENDS += $(LIBSAITHRIFT_DEV)
+$(SYNCD)_DEPENDS := $(filter-out $(LIBTHRIFT_DEV),$($(SYNCD)_DEPENDS))
+$(SYNCD)_DEPENDS += $(LIBSAITHRIFT_DEV) $(LIBTHRIFT_0_14_1_DEV)
 endif
 
 # Runtime dependency on sai is set only for syncd

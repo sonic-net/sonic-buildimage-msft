@@ -33,6 +33,10 @@ module sonic-acl {
 		prefix lag;
 	}
 
+	import sonic-mirror-session {
+		prefix sms;
+	}
+
 	description "ACL YANG Module for SONiC OS";
 
 	revision 2019-07-01 {
@@ -65,11 +69,27 @@ module sonic-acl {
 					type stypes:packet_action;
 				}
 
+				/* Validating 'PACKET_ACTION' exist if ACL type is 'CTRLPLANE' */
+				must "(not(../../ACL_TABLE/ACL_TABLE_LIST[ACL_TABLE_NAME=current()/ACL_TABLE_NAME]/type = 'CTRLPLANE')) or (boolean(PACKET_ACTION))";
+
+				leaf MIRROR_INGRESS_ACTION {
+					type leafref {
+						path "/sms:sonic-mirror-session/sms:MIRROR_SESSION/sms:MIRROR_SESSION_LIST/sms:name";
+					}
+				}
+
+				leaf MIRROR_EGRESS_ACTION {
+					type leafref {
+						path "/sms:sonic-mirror-session/sms:MIRROR_SESSION/sms:MIRROR_SESSION_LIST/sms:name";
+					}
+				}
+
 				leaf IP_TYPE {
 					type stypes:ip_type;
 				}
 
 				leaf PRIORITY {
+					mandatory true;
 					type uint32 {
 						range 0..999999;
 					}
@@ -152,7 +172,7 @@ module sonic-acl {
 
 				leaf ETHER_TYPE {
 					type string {
-					    pattern "0x0[6-9a-fA-F][0-9a-fA-F]{2}|0x[1-9a-fA-F][0-9a-fA-F]{3}";
+                                            pattern "0x0[6-9a-fA-F][0-9a-fA-F]{2}|0x[1-9a-fA-F][0-9a-fA-F]{3}|153[6-9]|15[4-9][0-9]|1[6-9][0-9][0-9]|[2-9][0-9]{3}|[1-5][0-9]{4}|6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}";
 					}
 				}
 

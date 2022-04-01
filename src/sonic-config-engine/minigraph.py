@@ -37,6 +37,7 @@ chassis_backend_role = 'ChassisBackendRouter'
 
 backend_device_types = ['BackEndToRRouter', 'BackEndLeafRouter']
 console_device_types = ['MgmtTsToR']
+dhcp_server_enabled_device_types = ['BmcMgmtToRRouter']
 VLAN_SUB_INTERFACE_SEPARATOR = '.'
 VLAN_SUB_INTERFACE_VLAN_ID = '10'
 
@@ -1281,7 +1282,6 @@ def parse_xml(filename, platform=None, port_config_file=None, asic_name=None, hw
     results = {}
     results['DEVICE_METADATA'] = {'localhost': {
         'bgp_asn': bgp_asn,
-        'deployment_id': deployment_id,
         'region': region,
         'cloudtype': cloudtype,
         'docker_routing_config_mode': docker_routing_config_mode,
@@ -1291,6 +1291,9 @@ def parse_xml(filename, platform=None, port_config_file=None, asic_name=None, hw
         'synchronous_mode': 'enable'
         }
     }
+
+    if deployment_id is not None:
+        results['DEVICE_METADATA']['localhost']['deployment_id'] = deployment_id
 
     cluster = [devices[key] for key in devices if key.lower() == hostname.lower()][0].get('cluster', "")
     if cluster:
@@ -1683,6 +1686,10 @@ def parse_xml(filename, platform=None, port_config_file=None, asic_name=None, hw
             'enabled' : 'yes' if current_device['type'] in console_device_types else 'no'
         }
     }
+
+    # Enable DHCP Server feature for specific device type
+    if current_device['type'] in dhcp_server_enabled_device_types:
+        results['DEVICE_METADATA']['localhost']['dhcp_server'] = 'enabled'
 
     return results
 

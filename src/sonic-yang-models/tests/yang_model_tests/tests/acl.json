@@ -4,6 +4,16 @@
         "eStrKey" : "InvalidValue",
         "eStr": ["PACKET_ACTION"]
     },
+    "ACL_RULE_FOR_CTRLPLANE_ACL_REQUIRES_PACKET_ACTION": {
+        "desc": "ACL_RULE for CTRLPLANE ACLs require PACKET_ACTION.",
+        "eStrKey" : "Must",
+        "eStr": ["CTRLPLANE", "PACKET_ACTION"]
+    },
+    "ACL_RULE_MANDATORY_PRIORITY": {
+        "desc": "ACL_RULE MANDATORY PRIORITY field.",
+        "eStrKey" : "Mandatory",
+        "eStr": ["ACL_RULE", "PRIORITY"]
+    },
     "ACL_TABLE_EMPTY_PORTS": {
         "desc": "Configure ACL_TABLE with empty ports."
     },
@@ -100,10 +110,24 @@
         "eStrKey" : "Pattern"
     },
     "ACL_RULE_L2_INVALID_ETHER": {
-        "desc": "Configure invalid MAC address format.",
+        "desc": "Configure invalid ethertype.",
+        "eStrKey" : "Pattern"
+    },
+    "ACL_RULE_L2_VALID_ETHER_IN_DECIMAL": {
+        "desc": "Configure valid ethertype in decimal format."
+    },
+    "ACL_RULE_L2_INVALID_ETHER_IN_DECIMAL": {
+        "desc": "Configure invalid ethertype in decimal format.",
         "eStrKey" : "Pattern"
     },
     "ACL_PACKET_ACTION_VALIDATE_VALUE_ACCEPT": {
         "desc": "Configure CTRLPLANE with proper action ACCEPT."
+    },
+    "ACL_RULE_WITH_INVALID_MIRROR_INGRESS_ACTION": {
+        "desc": "Configure ACL_RULE with invalid mirror action.",
+        "eStrKey" : "LeafRef"
+    },
+    "ACL_RULE_WITH_VALID_MIRROR_INGRESS_ACTION": {
+        "desc": "Configure ACL_RULE with valid mirror action."
     }
 }

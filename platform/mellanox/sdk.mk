@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016-2021 NVIDIA CORPORATION & AFFILIATES.
+# Copyright (c) 2016-2022 NVIDIA CORPORATION & AFFILIATES.
 # Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 #
 MLNX_SDK_BASE_PATH = $(PLATFORM_PATH)/sdk-src/sx-kernel/Switch-SDK-drivers/bin/
 MLNX_SDK_PKG_BASE_PATH = $(MLNX_SDK_BASE_PATH)/$(BLDENV)/
-MLNX_SDK_VERSION = 4.5.1158
+MLNX_SDK_VERSION = 4.5.1208
 MLNX_SDK_ISSU_VERSION = 101
 
 MLNX_SDK_DEB_VERSION = $(subst -,.,$(subst _,.,$(MLNX_SDK_VERSION)))

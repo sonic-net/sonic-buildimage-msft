@@ -88,7 +88,7 @@ module sonic-device_metadata {
                 leaf type {
                     type string {
                         length 1..255;
-                        pattern "ToRRouter|LeafRouter|SpineChassisFrontendRouter|ChassisBackendRouter|ASIC|MgmtToRRouter|SpineRouter|BackEndToRRouter|BackEndLeafRouter|EPMS|MgmtTsToR";
+                        pattern "ToRRouter|LeafRouter|SpineChassisFrontendRouter|ChassisBackendRouter|ASIC|MgmtToRRouter|SpineRouter|BackEndToRRouter|BackEndLeafRouter|EPMS|MgmtTsToR|not-provisioned";
                     }
                 }
 
@@ -127,12 +127,22 @@ module sonic-device_metadata {
                     type string;
                 }
 
+                leaf sub_role {
+                    type string;
+                    description "sub_role indicates if ASIC is FrondEnd or BackEnd.";
+                }
+
                 leaf downstream_subrole {
                     type string;
                 }
 
                 leaf resource_type {
                     type string;
+                }
+
+                leaf cluster {
+                    type string;
+                    description "The switch is a member of this cluster.";
                 }
 
                 leaf subtype {
@@ -147,6 +157,31 @@ module sonic-device_metadata {
 
                 leaf storage_device {
                     type boolean;
+                }
+
+                leaf asic_name {
+                    type string;
+                    description "On a VoQ switch, the ASIC Name is used as a qualifier in global
+                                 database keys to create a system wide unique key.";
+                }
+
+                leaf switch_id {
+                    type uint16;
+                    description "Vendor specific switch ID. Identifies switch chip.";
+                }
+
+                leaf switch_type {
+                    type string {
+                        pattern "chassis-packet|fabric|npu|voq";
+                    }
+                    description "Type of switch. Default is NPU, on a VOQ switch voq is used for a regular
+                                 switching device while fabric is used for a fabric device.
+                                 chassis-packet is used for chassis in packet mode.";
+                }
+
+                leaf max_cores {
+                    type uint8;
+                    description "Maximum number of cores in a VoQ Switch (chassis).";
                 }
             }
             /* end of container localhost */

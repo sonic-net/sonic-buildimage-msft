@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2020-2021 NVIDIA CORPORATION & AFFILIATES.
+# Copyright (c) 2020-2022 NVIDIA CORPORATION & AFFILIATES.
 # Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -186,7 +186,12 @@ case "${cmd}" in
             rc=$?
             disable_onie_access
             if [[ ${rc} -eq 0 ]]; then
-                system_reboot
+                if [[ "${arg}" == "--no-reboot" ]]; then
+                    echo "INFO: ONIE firmware update successfully STAGED for install at NEXT reboot. Please reboot manually to complete installation."
+                    exit 0
+                else
+                    system_reboot
+                fi
             else
                 echo "ERROR: failed to enable ONIE firmware update mode"
                 exit ${rc}

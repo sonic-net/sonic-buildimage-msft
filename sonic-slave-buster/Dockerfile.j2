@@ -1,11 +1,12 @@
+{% set prefix = DEFAULT_CONTAINER_REGISTRY %}
 {%- if CONFIGURED_ARCH == "armhf" and MULTIARCH_QEMU_ENVIRON == "y" %}
-FROM multiarch/qemu-user-static:x86_64-arm-5.0.0-2 as qemu
-FROM multiarch/debian-debootstrap:armhf-buster
+FROM {{ prefix }}multiarch/qemu-user-static:x86_64-arm-5.0.0-2 as qemu
+FROM {{ prefix }}multiarch/debian-debootstrap:armhf-buster
 COPY --from=qemu /usr/bin/qemu-arm-static /usr/bin
 {%- elif CONFIGURED_ARCH == "arm64" and MULTIARCH_QEMU_ENVIRON == "y" %}
-FROM multiarch/debian-debootstrap:arm64-buster
+FROM {{ prefix }}multiarch/debian-debootstrap:arm64-buster
 {%- else -%}
-FROM debian:buster
+FROM {{ prefix }}debian:buster
 {%- endif %}
 
 MAINTAINER gulv@microsoft.com
@@ -110,6 +111,13 @@ RUN apt-get update && apt-get install -y \
         libxml-simple-perl \
         graphviz \
         aspell \
+# For SAI meta rpc build - make rpc
+        libgetopt-long-descriptive-perl \
+        libconst-fast-perl \
+        libtemplate-perl \
+        libnamespace-autoclean-perl \
+        libmoose-perl \
+        libmoosex-aliases-perl \
 # For linux build
         bc \
         fakeroot \
@@ -284,9 +292,6 @@ RUN apt-get update && apt-get install -y \
         librrd8 \
         librrd-dev \
         rrdtool \
-# For smartmontools 6.6-1
-        automake1.11 \
-        libselinux1-dev \
 # For kdump-tools
         liblzo2-dev \
 # For iptables
@@ -458,6 +463,11 @@ RUN pip3 uninstall -y enum34
 
 # For templating
 RUN pip2 install j2cli==0.3.10
+# Note: Jinja2 depends on MarkupSafe, however markupsafe 2.1.0 breaks Jinja2 2.10
+# Debian buster dist-packages include python3-markupsafe (1.1.0-1) and python3-jinja2 (2.10-2)
+# If not pinning the versions, any requirement like `MarkupSafe>=2.0` will pull latest into site-packages and mess up.
+RUN pip3 install MarkupSafe==2.0.1
+RUN pip3 install Jinja2==3.0.3
 
 # For sonic-mgmt-framework
 RUN pip2 install "PyYAML==5.4.1"

@@ -6,14 +6,6 @@
 trigger: none
 pr: none
 
-resources:
-  repositories:
-  - repository: buildimage
-    type: github
-    name: Azure/sonic-buildimage
-    ref: master
-    endpoint: build
-
 schedules:
 - cron: "0 0 * * *"
   displayName: Daily Build
@@ -21,6 +13,14 @@ schedules:
     include:
     - 202012
   always: true
+
+resources:
+  repositories:
+  - repository: buildimage
+    type: github
+    name: Azure/sonic-buildimage
+    ref: master
+    endpoint: build
 
 pool: sonicbld
 
@@ -47,7 +47,7 @@ stages:
   - template: azure-pipelines-build.yml
     parameters:
       jobFilters: ${{ parameters.jobFilters }}
-      buildOptions: '${{ variables.VERSION_CONTROL_OPTIONS }} SONIC_BUILD_JOBS=$(nproc) ENABLE_IMAGE_SIGNATURE=y'
+      buildOptions: '${{ variables.VERSION_CONTROL_OPTIONS }} ENABLE_DOCKER_BASE_PULL=n SONIC_BUILD_JOBS=$(nproc) ENABLE_IMAGE_SIGNATURE=y'
       preSteps:
       - template: .azure-pipelines/template-clean-sonic-slave.yml@buildimage
 - stage: UpgradeVersions
@@ -73,14 +73,14 @@ stages:
         default_platform=broadcom
         artifacts=$(find $(Pipeline.Workspace) -maxdepth 1 -type d -name 'sonic-buildimage.*' | grep -v "sonic-buildimage.${default_platform}")
         echo "artifacts$artifacts"
-        cp -r $(Pipeline.Workspace)/sonic-buildimage.${default_platform}/versions target/
+        cp -r $(Pipeline.Workspace)/sonic-buildimage.${default_platform}/target/versions target/
         make freeze FREEZE_VERSION_OPTIONS=-r
         find files/build/versions 
         ordered_artifacts=$(echo "$artifacts" | grep -v -E "arm64|armhf" && echo "$artifacts" | grep -E "arm64|armhf")
         for artifact in $ordered_artifacts
         do
           rm -rf target/versions
-          cp -r $artifact/versions target/
+          cp -r $artifact/target/versions target/
           OPTIONS="-a -d"
           [[ "$artifact" == *arm64* || "$artifact" == *armhf* ]] && OPTIONS="-d"
           make freeze FREEZE_VERSION_OPTIONS="$OPTIONS"

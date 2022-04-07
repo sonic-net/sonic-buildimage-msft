@@ -2,8 +2,6 @@
 
 . /usr/local/share/buildinfo/scripts/buildinfo_base.sh
 
-[ -d $POST_VERSION_PATH ] && rm -rf $POST_VERSION_PATH
-
 # Collect the version files
 collect_version_files $POST_VERSION_PATH
 
@@ -12,3 +10,4 @@ rm -rf $BUILD_VERSION_PATH/*
 
 # Disable the build hooks
 symlink_build_hooks -d
+set_reproducible_mirrors -d

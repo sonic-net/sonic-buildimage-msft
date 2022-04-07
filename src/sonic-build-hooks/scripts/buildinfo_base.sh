@@ -11,6 +11,8 @@ POST_VERSION_PATH=$BUILDINFO_PATH/post-versions
 VERSION_DEB_PREFERENCE=$BUILDINFO_PATH/versions/01-versions-deb
 WEB_VERSION_FILE=$VERSION_PATH/versions-web
 BUILD_WEB_VERSION_FILE=$BUILD_VERSION_PATH/versions-web
+REPR_MIRROR_URL_PATTERN='http:\/\/packages.trafficmanager.net\/debian'
+DPKG_INSTALLTION_LOCK_FILE=/tmp/.dpkg_installation.lock
 
 . $BUILDINFO_PATH/config/buildinfo.config
 
@@ -59,6 +61,22 @@ check_if_url_exist()
     fi
 }
 
+# Enable or disable the reproducible mirrors
+set_reproducible_mirrors()
+{
+    # Remove the charater # in front of the line if matched
+    local expression="s/^#\(.*$REPR_MIRROR_URL_PATTERN\)/\1/"
+    if [ "$1" = "-d" ]; then
+        # Add the charater # in front of the line if match
+        expression="s/^deb.*$REPR_MIRROR_URL_PATTERN/#\0/"
+    fi
+
+    local mirrors="/etc/apt/sources.list $(ls /etc/apt/sources.list.d/)"
+    for mirror in $mirrors; do
+        sed -i "$expression" "$mirror"
+    done
+}
+
 download_packages()
 {
     local parameters=("$@")
@@ -82,8 +100,8 @@ download_packages()
                 local filename=$(echo $url | awk -F"/" '{print $NF}' | cut -d? -f1 | cut -d# -f1)
                 [ -f $WEB_VERSION_FILE ] && version=$(grep "^${url}=" $WEB_VERSION_FILE | awk -F"==" '{print $NF}')
                 if [ -z "$version" ]; then
-                    echo "Failed to verify the package: $url, the version is not specified" 2>&1
-                    exit 1
+                    echo "Warning: Failed to verify the package: $url, the version is not specified" 1>&2
+                    continue
                 fi
 
                 local version_filename="${filename}-${version}"
@@ -157,6 +175,83 @@ run_pip_command()
     local result=$?
     rm $tmp_version_file
     return $result
+}
+
+# Check if the command is to install the debian packages
+# The apt/apt-get command format: apt/apt-get [options] {update|install}
+check_apt_install()
+{
+    for para in "$@"
+    do
+        if [[ "$para" == -* ]]; then
+            continue
+        fi
+
+        if [[ "$para" == "install"  ]]; then
+            echo y
+        fi
+
+        break
+    done
+}
+
+# Print warning message if a debian package version not specified when debian version control enabled.
+check_apt_version()
+{
+    VERSION_FILE="/usr/local/share/buildinfo/versions/versions-deb"
+    local install=$(check_apt_install "$@")
+    if [ "$ENABLE_VERSION_CONTROL_DEB" == "y" ] && [ "$install" == "y" ]; then
+        for para in "$@"
+        do
+            if [[ "$para" == -* ]]; then
+                continue
+            fi
+
+            if [ "$para" == "install" ]; then
+                continue
+            fi
+
+            if [[ "$para" == *=* ]]; then
+                continue
+            else
+                package=$para
+                if ! grep -q "^${package}=" $VERSION_FILE; then
+                    echo "Warning: the version of the package ${package} is not specified." 1>&2
+                fi
+            fi
+        done
+    fi
+}
+
+acquire_apt_installation_lock()
+{
+    local result=n
+    local wait_in_second=10
+    local count=60
+    local info="$1"
+    for ((i=1; i<=$count; i++)); do
+        if [ -f $DPKG_INSTALLTION_LOCK_FILE ]; then
+            local lock_info=$(cat $DPKG_INSTALLTION_LOCK_FILE || true)
+            echo "Waiting dpkg lock for $wait_in_second, $i/$count, info: $lock_info" 1>&2
+            sleep $wait_in_second
+        else
+            # Create file in an atomic operation
+            if (set -o noclobber; echo "$info">$DPKG_INSTALLTION_LOCK_FILE) &>/dev/null; then
+                result=y
+                break
+            else
+                echo "Failed to creat lock, Waiting dpkg lock for $wait_in_second, $i/$count, info: $lock_info" 1>&2
+                sleep $wait_in_second
+            fi
+        fi
+    done
+
+    echo $result
+}
+
+release_apt_installation_lock()
+{
+    rm -f $DPKG_INSTALLTION_LOCK_FILE
 }
 
 ENABLE_VERSION_CONTROL_DEB=$(check_version_control "deb")

@@ -71,7 +71,7 @@ set_reproducible_mirrors()
         expression="s/^deb.*$REPR_MIRROR_URL_PATTERN/#\0/"
     fi
 
-    local mirrors="/etc/apt/sources.list $(ls /etc/apt/sources.list.d/)"
+    local mirrors="/etc/apt/sources.list $(find /etc/apt/sources.list.d/ -type f)"
     for mirror in $mirrors; do
         sed -i "$expression" "$mirror"
     done
@@ -162,6 +162,10 @@ run_pip_command()
             install=y
         elif [[ "$para" == *.whl ]]; then
             package_name=$(echo $para | cut -d- -f1 | tr _ .)
+            sed "/^${package_name}==/d" -i $tmp_version_file
+        elif [[ "$para" == *==* ]]; then
+            # fix pip package constraint conflict issue
+            package_name=$(echo $para | cut -d= -f1)
             sed "/^${package_name}==/d" -i $tmp_version_file
         fi
     done

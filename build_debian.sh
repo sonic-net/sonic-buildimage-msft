@@ -113,6 +113,12 @@ sudo cp files/apt/apt.conf.d/{81norecommends,apt-{clean,gzip-indexes,no-language
 ## Note: set lang to prevent locale warnings in your chroot
 sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y update
 sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y upgrade
+
+echo '[INFO] Install and setup eatmydata'
+sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install eatmydata
+sudo LANG=C chroot $FILESYSTEM_ROOT ln -s /usr/bin/eatmydata /usr/local/bin/dpkg
+echo 'Dir::Bin::dpkg "/usr/local/bin/dpkg";' | sudo tee $FILESYSTEM_ROOT/etc/apt/apt.conf.d/00image-install-eatmydata > /dev/null
+
 echo '[INFO] Install packages for building image'
 sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install makedev psmisc
 
@@ -141,6 +147,23 @@ sudo dpkg --root=$FILESYSTEM_ROOT -i $debs_path/linux-image-${LINUX_KERNEL_VERSI
 sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install acl
 if [[ $CONFIGURED_ARCH == amd64 ]]; then
     sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install dmidecode hdparm
+fi
+
+## Sign the Linux kernel
+if [ "$SONIC_ENABLE_SECUREBOOT_SIGNATURE" = "y" ]; then
+    if [ ! -f $SIGNING_KEY ]; then
+       echo "Error: SONiC linux kernel signing key missing"
+       exit 1
+    fi
+    if [ ! -f $SIGNING_CERT ]; then
+       echo "Error: SONiC linux kernel signing certificate missing"
+       exit 1
+    fi
+
+    echo '[INFO] Signing SONiC linux kernel image'
+    K=$FILESYSTEM_ROOT/boot/vmlinuz-${LINUX_KERNEL_VERSION}-amd64
+    sbsign --key $SIGNING_KEY --cert $SIGNING_CERT --output /tmp/${K##*/} ${K}
+    sudo cp -f /tmp/${K##*/} ${K}
 fi
 
 ## Update initramfs for booting with squashfs+overlay
@@ -568,6 +591,10 @@ scripts/collect_host_image_version_files.sh $TARGET_PATH $FILESYSTEM_ROOT
 
 # Remove GCC
 sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y remove gcc
+
+# Remove eatmydata
+sudo rm $FILESYSTEM_ROOT/etc/apt/apt.conf.d/00image-install-eatmydata $FILESYSTEM_ROOT/usr/local/bin/dpkg
+sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y remove eatmydata
 
 ## Clean up apt
 sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y autoremove

@@ -198,6 +198,15 @@
             }
         }
     },
+    "DEVICE_METADATA_VALID_CLUSTER": {
+        "sonic-device_metadata:sonic-device_metadata": {
+            "sonic-device_metadata:DEVICE_METADATA": {
+                "sonic-device_metadata:localhost": {
+                    "cluster": "AAA00PrdStr00"
+                }
+            }
+        }
+    },
     "DEVICE_METADATA_VALID_SUBTYPE": {
         "sonic-device_metadata:sonic-device_metadata": {
             "sonic-device_metadata:DEVICE_METADATA": {
@@ -248,6 +257,24 @@
             "sonic-device_metadata:DEVICE_METADATA": {
                 "sonic-device_metadata:localhost": {
                     "storage_device": "yes"
+                }
+            }
+        }
+    },
+    "DEVICE_METADATA_VALID_DHCP_SERVER": {
+        "sonic-device_metadata:sonic-device_metadata": {
+            "sonic-device_metadata:DEVICE_METADATA": {
+                "sonic-device_metadata:localhost": {
+                    "dhcp_server": "enabled"
+                }
+            }
+        }
+    },
+    "DEVICE_METADATA_INVALID_DHCP_SERVER": {
+        "sonic-device_metadata:sonic-device_metadata": {
+            "sonic-device_metadata:DEVICE_METADATA": {
+                "sonic-device_metadata:localhost": {
+                    "dhcp_server": "invalid"
                 }
             }
         }

@@ -241,6 +241,10 @@ ifeq ($(SONIC_BUILD_JOBS),)
 override SONIC_BUILD_JOBS := $(SONIC_CONFIG_BUILD_JOBS)
 endif
 
+DOCKER_IMAGE_REF = $*-$(DOCKER_USERNAME):$(DOCKER_USERTAG)
+DOCKER_DBG_IMAGE_REF = $*-$(DBG_IMAGE_MARK)-$(DOCKER_USERNAME):$(DOCKER_USERTAG)
+export DOCKER_USERNAME DOCKER_USERTAG 
+
 ifeq ($(VS_PREPARE_MEM),)
 override VS_PREPARE_MEM := $(DEFAULT_VS_PREPARE_MEM)
 endif
@@ -286,6 +290,7 @@ $(info "CONFIGURED_ARCH"                 : "$(if $(PLATFORM_ARCH),$(PLATFORM_ARC
 $(info "SONIC_CONFIG_PRINT_DEPENDENCIES" : "$(SONIC_CONFIG_PRINT_DEPENDENCIES)")
 $(info "SONIC_BUILD_JOBS"                : "$(SONIC_BUILD_JOBS)")
 $(info "SONIC_CONFIG_MAKE_JOBS"          : "$(SONIC_CONFIG_MAKE_JOBS)")
+$(info "USE_NATIVE_DOCKERD_FOR_BUILD"    : "$(SONIC_CONFIG_USE_NATIVE_DOCKERD_FOR_BUILD)")
 $(info "SONIC_USE_DOCKER_BUILDKIT"       : "$(SONIC_USE_DOCKER_BUILDKIT)")
 $(info "USERNAME"                        : "$(USERNAME)")
 $(info "PASSWORD"                        : "$(PASSWORD)")
@@ -360,6 +365,60 @@ endif
 
 export kernel_procure_method=$(KERNEL_PROCURE_METHOD)
 export vs_build_prepare_mem=$(VS_PREPARE_MEM)
+
+###############################################################################
+## Canned sequences
+###############################################################################
+## When multiple builds are triggered on the same build server that causes the docker image naming problem because
+## all the build jobs are trying to create the same docker image with latest as tag.
+## This happens only when sonic docker images are built using native host dockerd.
+##
+##     docker-swss:latest <=SAVE/LOAD=> docker-swss-<user>:<tag>
+
+# $(call docker-image-save,from,to)
+# Sonic docker images are always created with username as extension. During the save operation, 
+# it removes the username extension from docker image and saved them as compressed tar file for SONiC image generation.
+# The save operation is protected with lock for parallel build.
+#
+# $(1) => Docker name
+# $(2) => Docker target name
+
+define docker-image-save
+    @echo "Attempting docker image lock for $(1) save" $(LOG)
+    $(call MOD_LOCK,$(1),$(DOCKER_LOCKDIR),$(DOCKER_LOCKFILE_SUFFIX),$(DOCKER_LOCKFILE_TIMEOUT))
+    @echo "Obtained docker image lock for $(1) save" $(LOG)
+    @echo "Tagging docker image $(1)-$(DOCKER_USERNAME):$(DOCKER_USERTAG) as $(1):latest" $(LOG)
+    docker tag $(1)-$(DOCKER_USERNAME):$(DOCKER_USERTAG) $(1):latest $(LOG)
+    @echo "Saving docker image $(1):latest" $(LOG)
+        docker save $(1):latest | gzip -c > $(2)
+    @echo "Removing docker image $(1):latest" $(LOG)
+    docker rmi -f $(1):latest $(LOG)
+    $(call MOD_UNLOCK,$(1))
+    @echo "Released docker image lock for $(1) save" $(LOG)
+    @echo "Removing docker image $(1)-$(DOCKER_USERNAME):$(DOCKER_USERTAG)" $(LOG)
+    docker rmi -f $(1)-$(DOCKER_USERNAME):$(DOCKER_USERTAG) $(LOG)
+endef
+
+# $(call docker-image-load,from)
+# Sonic docker images are always created with username as extension. During the load operation, 
+# it loads the docker image from compressed tar file and tag them with username as extension.
+# The load operation is protected with lock for parallel build.
+#
+# $(1) => Docker name
+# $(2) => Docker target name
+define docker-image-load
+    @echo "Attempting docker image lock for $(1) load" $(LOG)
+    $(call MOD_LOCK,$(1),$(DOCKER_LOCKDIR),$(DOCKER_LOCKFILE_SUFFIX),$(DOCKER_LOCKFILE_TIMEOUT))
+    @echo "Obtained docker image lock for $(1) load" $(LOG)
+    @echo "Loading docker image $(TARGET_PATH)/$(1).gz" $(LOG)
+    docker load -i $(TARGET_PATH)/$(1).gz $(LOG)
+    @echo "Tagging docker image $(1):latest as $(1)-$(DOCKER_USERNAME):$(DOCKER_USERTAG)" $(LOG)
+    docker tag $(1):latest $(1)-$(DOCKER_USERNAME):$(DOCKER_USERTAG) $(LOG)
+    @echo "Removing docker image $(1):latest" $(LOG)
+    docker rmi -f $(1):latest $(LOG)
+    $(call MOD_UNLOCK,$(1))
+    @echo "Released docker image lock for $(1) load" $(LOG)
+endef
 
 ###############################################################################
 ## Local targets
@@ -752,9 +811,9 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_SIMPLE_DOCKER_IMAGES)) : $(TARGET_PATH)/%.g
 		--build-arg docker_container_name=$($*.gz_CONTAINER_NAME) \
 		--label Tag=$(SONIC_IMAGE_VERSION) \
 		-f $(TARGET_DOCKERFILE)/Dockerfile.buildinfo \
-		-t $* $($*.gz_PATH) $(LOG)
-	scripts/collect_docker_version_files.sh $* $(TARGET_PATH)
-	docker save $* | gzip -c > $@
+		-t $(DOCKER_IMAGE_REF) $($*.gz_PATH) $(LOG)
+	scripts/collect_docker_version_files.sh $(DOCKER_IMAGE_REF) $(TARGET_PATH)
+	$(call docker-image-save,$*,$@)
 	# Clean up
 	if [ -f $($*.gz_PATH).patch/series ]; then pushd $($*.gz_PATH) && quilt pop -a -f; [ -d .pc ] && rm -rf .pc; popd; fi
 	$(FOOTER)
@@ -871,9 +930,9 @@ $(addprefix $(TARGET_PATH)/, $(DOCKER_IMAGES)) : $(TARGET_PATH)/%.gz : .platform
 			--label com.azure.sonic.manifest="$$(cat $($*.gz_PATH)/manifest.json)" \
 			--label Tag=$(SONIC_IMAGE_VERSION) \
 		        $($(subst -,_,$(notdir $($*.gz_PATH)))_labels) \
-			-t $* $($*.gz_PATH) $(LOG)
-		scripts/collect_docker_version_files.sh $* $(TARGET_PATH)
-		docker save $* | gzip -c > $@
+			-t $(DOCKER_IMAGE_REF) $($*.gz_PATH) $(LOG)
+		scripts/collect_docker_version_files.sh $(DOCKER_IMAGE_REF) $(TARGET_PATH)
+		$(call docker-image-save,$*,$@)
 		# Clean up
 		if [ -f $($*.gz_PATH).patch/series ]; then pushd $($*.gz_PATH) && quilt pop -a -f; [ -d .pc ] && rm -rf .pc; popd; fi
 
@@ -885,7 +944,7 @@ $(addprefix $(TARGET_PATH)/, $(DOCKER_IMAGES)) : $(TARGET_PATH)/%.gz : .platform
 
 SONIC_TARGET_LIST += $(addprefix $(TARGET_PATH)/, $(DOCKER_IMAGES))
 
-# Targets for building docker images
+# Targets for building docker debug images
 $(addprefix $(TARGET_PATH)/, $(DOCKER_DBG_IMAGES)) : $(TARGET_PATH)/%-$(DBG_IMAGE_MARK).gz : .platform docker-start \
 		$$(addprefix $(TARGET_PATH)/,$$($$*.gz_AFTER)) \
 		$$(addprefix $$($$*.gz_DEBS_PATH)/,$$($$*.gz_DBG_DEPENDS)) \
@@ -905,7 +964,7 @@ $(addprefix $(TARGET_PATH)/, $(DOCKER_DBG_IMAGES)) : $(TARGET_PATH)/%-$(DBG_IMAG
 		$(eval export $(subst -,_,$(notdir $($*.gz_PATH)))_dbg_debs=$(shell printf "$(subst $(SPACE),\n,$(call expand,$($*.gz_DBG_DEPENDS),RDEPENDS))\n" | awk '!a[$$0]++'))
 		$(eval export $(subst -,_,$(notdir $($*.gz_PATH)))_image_dbgs=$(shell printf "$(subst $(SPACE),\n,$(call expand,$($*.gz_DBG_IMAGE_PACKAGES)))\n" | awk '!a[$$0]++'))
 		$(eval export $(subst -,_,$(notdir $($*.gz_PATH)))_dbg_pkgs=$(shell printf "$(subst $(SPACE),\n,$(call expand,$($*.gz_DBG_APT_PACKAGES),RDEPENDS))\n" | awk '!a[$$0]++'))
-		./build_debug_docker_j2.sh $* $(subst -,_,$(notdir $($*.gz_PATH)))_dbg_debs $(subst -,_,$(notdir $($*.gz_PATH)))_image_dbgs > $($*.gz_PATH)/Dockerfile-dbg.j2
+		./build_debug_docker_j2.sh $(DOCKER_IMAGE_REF) $(subst -,_,$(notdir $($*.gz_PATH)))_dbg_debs $(subst -,_,$(notdir $($*.gz_PATH)))_image_dbgs > $($*.gz_PATH)/Dockerfile-dbg.j2
 		j2 $($*.gz_PATH)/Dockerfile-dbg.j2 > $($*.gz_PATH)/Dockerfile-dbg
 		$(call generate_manifest,$*,dbg)
 		# Prepare docker build info
@@ -923,10 +982,11 @@ $(addprefix $(TARGET_PATH)/, $(DOCKER_DBG_IMAGES)) : $(TARGET_PATH)/%-$(DBG_IMAG
 			--label com.azure.sonic.manifest="$$(cat $($*.gz_PATH)/manifest.json)" \
 			--label Tag=$(SONIC_IMAGE_VERSION) \
 			--file $($*.gz_PATH)/Dockerfile-dbg \
-			-t $*-dbg $($*.gz_PATH) $(LOG)
-		scripts/collect_docker_version_files.sh $*-dbg $(TARGET_PATH)
-		docker save $*-dbg | gzip -c > $@
+			-t $(DOCKER_DBG_IMAGE_REF) $($*.gz_PATH) $(LOG)
+		scripts/collect_docker_version_files.sh $(DOCKER_DBG_IMAGE_REF) $(TARGET_PATH)
+		$(call docker-image-save,$*-$(DBG_IMAGE_MARK),$@)
 		# Clean up
+		docker rmi -f $(DOCKER_IMAGE_REF) &> /dev/null || true
 		if [ -f $($*.gz_PATH).patch/series ]; then pushd $($*.gz_PATH) && quilt pop -a -f; [ -d .pc ] && rm -rf .pc; popd; fi
 
 		# Save the target deb into DPKG cache
@@ -952,7 +1012,7 @@ endif
 
 $(DOCKER_LOAD_TARGETS) : $(TARGET_PATH)/%.gz-load : .platform docker-start $$(TARGET_PATH)/$$*.gz
 	$(HEADER)
-	docker load -i $(TARGET_PATH)/$*.gz $(LOG)
+	$(call docker-image-load,$*)
 	$(FOOTER)
 
 ###############################################################################
@@ -1102,6 +1162,14 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 				$(eval $(docker:-dbg.gz=.gz)_GLOBAL = yes)
 			)
 		fi
+		if [ -f files/build_templates/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).timer.j2 ]; then
+			j2 files/build_templates/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).timer.j2 > $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).timer
+
+			# Set the flag GLOBAL_TIMER for all the global system-wide dockers timers.
+			$(if $(shell ls files/build_templates/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).timer.j2 2>/dev/null),\
+				$(eval $(docker:-dbg.gz=.gz)_GLOBAL_TIMER = yes)
+			)
+		fi
 		# Any service template, inside instance directory, will be used to generate .service and @.service file.
 		if [ -f files/build_templates/per_namespace/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service.j2 ]; then
 			export multi_instance="true"
@@ -1111,6 +1179,16 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 			)
 			export multi_instance="false"
 			j2 files/build_templates/per_namespace/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service.j2 > $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service
+		fi
+		# Any timer template, inside instance directory, will be used to generate .timer and @.timer file.
+		if [ -f files/build_templates/per_namespace/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).timer.j2 ]; then
+			export multi_instance="true"
+			j2 files/build_templates/per_namespace/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).timer.j2 > $($(docker:-dbg.gz=.gz)_CONTAINER_NAME)@.timer
+			$(if $(shell ls files/build_templates/per_namespace/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).timer.j2 2>/dev/null),\
+				$(eval $(docker:-dbg.gz=.gz)_TEMPLATE_TIMER = yes)
+			)
+			export multi_instance="false"
+			j2 files/build_templates/per_namespace/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).timer.j2 > $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).timer
 		fi
 		# Any service template, inside share_image directory, will be used to generate -chassis.service file.
 		# TODO: need better way to name the image-shared service
@@ -1149,7 +1227,20 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 			$(eval SERVICES += "$(addsuffix -chassis.service, $($(docker:-dbg.gz=.gz)_CONTAINER_NAME))")
 		)
 	)
+	# Marks template timers with an "@" according to systemd convention
+	# If the $($docker)_TEMPLATE_TIMER) variable is set, the timer will be treated as a template
+	# If the $($docker)_GLOBAL_TIMER) and $($docker)_TEMPLATE_TIMER) variables are set the timer will be added both as a global and template timer.
+	$(foreach docker, $($*_DOCKERS),\
+		$(if $($(docker:-dbg.gz=.gz)_TEMPLATE_TIMER),\
+			$(if $($(docker:-dbg.gz=.gz)_GLOBAL_TIMER),\
+				$(eval TIMERS += "$(addsuffix .timer, $($(docker:-dbg.gz=.gz)_CONTAINER_NAME))")\
+			)\
+			$(eval TIMERS += "$(addsuffix @.timer, $($(docker:-dbg.gz=.gz)_CONTAINER_NAME))"),\
+			$(eval TIMERS += "$(addsuffix .timer, $($(docker:-dbg.gz=.gz)_CONTAINER_NAME))")
+		)
+	)
 	export installer_services="$(SERVICES)"
+	export installer_timers="$(TIMERS)"
 
 	export installer_extra_files="$(foreach docker, $($*_DOCKERS), $(foreach file, $($(docker:-dbg.gz=.gz)_BASE_IMAGE_FILES), $($(docker:-dbg.gz=.gz)_PATH)/base_image_files/$(file)))"
 

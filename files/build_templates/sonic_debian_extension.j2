@@ -329,6 +329,11 @@ sudo dpkg --root=$FILESYSTEM_ROOT -i $debs_path/smartmontools_*.deb
 # Install custom-built openssh sshd
 sudo dpkg --root=$FILESYSTEM_ROOT -i $debs_path/openssh-server_*.deb
 
+# Remove sshd host keys, and will regenerate on first sshd start. This needs to be
+# done again here because our custom version of sshd is being installed, which
+# will regenerate the sshd host keys.
+sudo rm -f $FILESYSTEM_ROOT/etc/ssh/ssh_host_*_key*
+
 {% if sonic_asic_platform == 'broadcom' %}
 # Install custom-built flashrom
 sudo dpkg --root=$FILESYSTEM_ROOT -i $debs_path/flashrom_*.deb
@@ -647,7 +652,7 @@ fi
 ## ensure proc is mounted
 sudo mount proc /proc -t proc || true
 if [[ $CONFIGURED_ARCH == armhf ]]; then
-    # A workaround to fix the armhf build hung issue, caused by sonic-platform-nokia-7215_1.0_armhf.deb post installation script 
+    # A workaround to fix the armhf build hung issue, caused by sonic-platform-nokia-7215_1.0_armhf.deb post installation script
     ps -eo pid,cmd | grep python | grep "/etc/entropy.py" | awk '{print $1}' | xargs sudo kill -9 2>/dev/null || true
 fi
 
@@ -764,6 +769,19 @@ if [ -f {{service}} ]; then
     {% endif %}
 
     echo "{{service}}" | sudo tee -a $GENERATED_SERVICE_FILE
+fi
+{% endfor %}
+{% for timer in installer_timers.split(' ') -%}
+if [ -f {{timer}} ]; then
+    sudo cp {{timer}} $FILESYSTEM_ROOT_USR_LIB_SYSTEMD_SYSTEM
+
+    {% if "@" in timer %}
+    MULTI_INSTANCE="{{timer}}"
+    SINGLE_INSTANCE=${MULTI_INSTANCE/"@"}
+    sudo cp $SINGLE_INSTANCE $FILESYSTEM_ROOT_USR_LIB_SYSTEMD_SYSTEM
+    {% endif %}
+
+    echo "{{timer}}" | sudo tee -a $GENERATED_SERVICE_FILE
 fi
 {% endfor %}
 if [ -f iccpd.service ]; then

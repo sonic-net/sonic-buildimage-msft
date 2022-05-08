@@ -49,18 +49,19 @@ const struct sock_fprog ether_relay_fprog = {
 
 /* DHCPv6 Counter */
 uint64_t counters[DHCPv6_MESSAGE_TYPE_COUNT];
-std::map<int, std::string> counterMap = {{0, "Unknown"},
-                                      {1, "Solicit"},
-                                      {2, "Advertise"},
-                                      {3, "Request"},
-                                      {4, "Confirm"},
-                                      {5, "Renew"},
-                                      {6, "Rebind"},
-                                      {7, "Reply"},
-                                      {8, "Release"},
-                                      {9, "Decline"},
-                                      {12, "Relay-Forward"},
-                                      {13, "Relay-Reply"}};
+std::map<int, std::string> counterMap = {{DHCPv6_MESSAGE_TYPE_UNKNOWN, "Unknown"},
+                                      {DHCPv6_MESSAGE_TYPE_SOLICIT, "Solicit"},
+                                      {DHCPv6_MESSAGE_TYPE_ADVERTISE, "Advertise"},
+                                      {DHCPv6_MESSAGE_TYPE_REQUEST, "Request"},
+                                      {DHCPv6_MESSAGE_TYPE_CONFIRM, "Confirm"},
+                                      {DHCPv6_MESSAGE_TYPE_RENEW, "Renew"},
+                                      {DHCPv6_MESSAGE_TYPE_REBIND, "Rebind"},
+                                      {DHCPv6_MESSAGE_TYPE_REPLY, "Reply"},
+                                      {DHCPv6_MESSAGE_TYPE_RELEASE, "Release"},
+                                      {DHCPv6_MESSAGE_TYPE_DECLINE, "Decline"},
+                                      {DHCPv6_MESSAGE_TYPE_RELAY_FORW, "Relay-Forward"},
+                                      {DHCPv6_MESSAGE_TYPE_RELAY_REPL, "Relay-Reply"},
+                                      {DHCPv6_MESSAGE_TYPE_MALFORMED, "Malformed"}};
 
 /**
  * @code                void initialize_counter(swss::DBConnector *db, std::string counterVlan);
@@ -85,6 +86,7 @@ void initialize_counter(swss::DBConnector *db, std::string counterVlan) {
     db->hset(counterVlan, "Decline", toString(counters[DHCPv6_MESSAGE_TYPE_DECLINE]));
     db->hset(counterVlan, "Relay-Forward", toString(counters[DHCPv6_MESSAGE_TYPE_RELAY_FORW]));
     db->hset(counterVlan, "Relay-Reply", toString(counters[DHCPv6_MESSAGE_TYPE_RELAY_REPL]));
+    db->hset(counterVlan, "Malformed", toString(counters[DHCPv6_MESSAGE_TYPE_MALFORMED]));
 }
 
 /**
@@ -378,44 +380,57 @@ void prepare_socket(int *local_sock, int *server_sock, relay_config *config, int
     memset(&ll_addr, 0, sizeof(ll_addr));
 
     if ((*local_sock = socket(AF_INET6, SOCK_DGRAM, 0)) == -1) {
-        syslog(LOG_ERR, "socket: Failed to create socket\n");
+        syslog(LOG_ERR, "socket: Failed to create socket on interface %s\n", config->interface.c_str());
     }
 
     if ((*server_sock= socket(AF_INET6, SOCK_DGRAM, 0)) == -1) {
-        syslog(LOG_ERR, "socket: Failed to create socket\n");
+        syslog(LOG_ERR, "socket: Failed to create socket on interface %s\n", config->interface.c_str());
     }
 
-
-    if (getifaddrs(&ifa) == -1) {
-        syslog(LOG_WARNING, "getifaddrs: Unable to get network interfaces\n");
-        exit(1);
-    }
-
-    ifa_tmp = ifa;
-    while (ifa_tmp) {
-        if (ifa_tmp->ifa_addr->sa_family == AF_INET6) {
-            struct sockaddr_in6 *in6 = (struct sockaddr_in6*) ifa_tmp->ifa_addr;
-            if((strcmp(ifa_tmp->ifa_name, config->interface.c_str()) == 0) && !IN6_IS_ADDR_LINKLOCAL(&in6->sin6_addr)) {   
-                in6->sin6_family = AF_INET6;
-                in6->sin6_port = htons(RELAY_PORT);
-                addr = *in6;
-            }
-            if((strcmp(ifa_tmp->ifa_name, config->interface.c_str()) == 0) && IN6_IS_ADDR_LINKLOCAL(&in6->sin6_addr)) {   
-                in6->sin6_family = AF_INET6;
-                in6->sin6_port = htons(RELAY_PORT);
-                ll_addr = *in6;
-            }
+    int retry = 0;
+    bool bind_addr = false;
+    bool bind_ll_addr = false;
+    do {
+        if (getifaddrs(&ifa) == -1) {
+            syslog(LOG_WARNING, "getifaddrs: Unable to get network interfaces with %s\n", strerror(errno));
         }
-        ifa_tmp = ifa_tmp->ifa_next;
-    }
-    freeifaddrs(ifa);
-    
-    if (bind(*local_sock, (sockaddr *)&addr, sizeof(addr)) == -1) {
-        syslog(LOG_ERR, "bind: Failed to bind to socket\n");
+        else {
+            ifa_tmp = ifa;
+            while (ifa_tmp) {
+                if ((ifa_tmp->ifa_addr->sa_family == AF_INET6) && (strcmp(ifa_tmp->ifa_name, config->interface.c_str()) == 0)) {
+                    struct sockaddr_in6 *in6 = (struct sockaddr_in6*) ifa_tmp->ifa_addr;
+                    if(!IN6_IS_ADDR_LINKLOCAL(&in6->sin6_addr)) {  
+                        bind_addr = true;
+                        in6->sin6_family = AF_INET6;
+                        in6->sin6_port = htons(RELAY_PORT);
+                        addr = *in6;
+                    }
+                    if(IN6_IS_ADDR_LINKLOCAL(&in6->sin6_addr)) {
+                        bind_ll_addr = true;
+                        in6->sin6_family = AF_INET6;
+                        in6->sin6_port = htons(RELAY_PORT);
+                        ll_addr = *in6;
+                    }
+                }
+                ifa_tmp = ifa_tmp->ifa_next;
+            }
+            freeifaddrs(ifa);
+        }
+
+        if (bind_addr && bind_ll_addr) {
+            break;
+        }
+
+        syslog(LOG_WARNING, "Retry #%d to bind to sockets on interface %s\n", ++retry, config->interface.c_str());
+        sleep(5);
+    } while (retry < 6);
+
+    if ((!bind_addr) || (bind(*local_sock, (sockaddr *)&addr, sizeof(addr)) == -1)) {
+        syslog(LOG_ERR, "bind: Failed to bind socket to global ipv6 address on interface %s after %d retries with %s\n", config->interface.c_str(), retry, strerror(errno));
     }
 
-    if (bind(*server_sock, (sockaddr *)&ll_addr, sizeof(addr)) == -1) {
-        syslog(LOG_ERR, "bind: Failed to bind to socket\n");
+    if ((!bind_ll_addr) || (bind(*server_sock, (sockaddr *)&ll_addr, sizeof(addr)) == -1)) {
+        syslog(LOG_ERR, "bind: Failed to bind socket to link local ipv6 address on interface %s after %d retries with %s\n", config->interface.c_str(), retry, strerror(errno));
     }
 }
 
@@ -609,6 +624,8 @@ void callback(evutil_socket_t fd, short event, void *arg) {
     current_position = tmp;
 
     auto msg = parse_dhcpv6_hdr(current_position);
+    auto option_position = current_position + sizeof(struct dhcpv6_msg);
+
     counters[msg->msg_type]++;
     std::string counterVlan = counter_table;
     update_counter(config->db, counterVlan.append(config->interface), msg->msg_type);
@@ -619,9 +636,29 @@ void callback(evutil_socket_t fd, short event, void *arg) {
             relay_relay_forw(config->local_sock, current_position, ntohs(udp_header->len) - sizeof(udphdr), ip_header, config);
             break;
         }
+        case DHCPv6_MESSAGE_TYPE_SOLICIT:
+        case DHCPv6_MESSAGE_TYPE_REQUEST: 
+        case DHCPv6_MESSAGE_TYPE_RENEW:
+        case DHCPv6_MESSAGE_TYPE_REBIND:
+        case DHCPv6_MESSAGE_TYPE_RELEASE:
+        case DHCPv6_MESSAGE_TYPE_DECLINE:
+        {
+            while (option_position - message_buffer < len) {
+                auto option = parse_dhcpv6_opt(option_position, &tmp);
+                option_position = tmp;
+                if(ntohs(option->option_code) > DHCPv6_OPTION_LIMIT) {
+                    counters[DHCPv6_MESSAGE_TYPE_MALFORMED]++;
+                    update_counter(config->db, counterVlan.append(config->interface), DHCPv6_MESSAGE_TYPE_MALFORMED);
+                    syslog(LOG_WARNING, "DHCPv6 option is invalid or contains malformed payload\n");
+                    return;
+                }
+            }
+            relay_client(config->local_sock, current_position, ntohs(udp_header->len) - sizeof(udphdr), ip_header, ether_header, config);
+            break;
+        }
         default:
         {
-            relay_client(config->local_sock, current_position, ntohs(udp_header->len) - sizeof(udphdr), ip_header, ether_header, config);
+            syslog(LOG_WARNING, "DHCPv6 client message received was not relayed\n");
             break;
         }
     }

@@ -532,6 +532,12 @@ write_platform_specific_cmdline() {
         aboot_machine=arista_7060dx4_32
         flash_size=28000
     fi
+    if [ "$sid" = "BlackhawkT4O" ]; then
+        aboot_machine=arista_7050px4_32s
+    fi
+    if [ "$sid" = "BlackhawkT4DD" ]; then
+        aboot_machine=arista_7050dx4_32s
+    fi
     if [ "$sid" = "Smartsville" ]; then
         aboot_machine=arista_7280cr3_32p4
     fi
@@ -549,6 +555,12 @@ write_platform_specific_cmdline() {
     fi
     if [ "$sid" = "SmartsvilleDDBkMs" ] || [ "$sid" = "SmartsvilleDDBkMsTpm" ]; then
         aboot_machine=arista_7280cr3mk_32d4
+    fi
+    if [ "$sid" = "CatalinaP" ]; then
+        aboot_machine=arista_7060px5_64s
+    fi
+    if [ "$sid" = "CatalinaDD" ]; then
+        aboot_machine=arista_7060dx5_64s
     fi
     if [ "$sid" = "Clearwater2" ]; then
         aboot_machine=arista_7800r3_48cq2_lc

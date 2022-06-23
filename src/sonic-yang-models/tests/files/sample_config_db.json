@@ -426,9 +426,21 @@
             "2001:aa:aa::aa": {}
         },
         "SYSLOG_SERVER" : {
-            "10.13.14.17": {},
-            "20.1.1.1": {},
-            "2001:aa:aa::aa": {}
+            "10.13.14.17": {
+                "source": "1.1.1.1",
+                "port": "514",
+                "vrf": "default"
+            },
+            "20.1.1.1": {
+                "source": "1.1.1.1",
+                "port": "514",
+                "vrf": "mgmt"
+            },
+            "2001:aa:aa::aa": {
+                "source": "1111::1111",
+                "port": "514",
+                "vrf": "Vrf_blue"
+            }
         },
         "CABLE_LENGTH": {
             "AZURE": {
@@ -1878,6 +1890,20 @@
                      "LAG"
                  ]
              }
+         },
+
+        "LOSSLESS_TRAFFIC_PATTERN": {
+            "AZURE": {
+                "mtu": "1024",
+                "small_packet_percentage": "100"
+            }
+        },
+
+        "DEFAULT_LOSSLESS_BUFFER_PARAMETER": {
+            "AZURE": {
+                "default_dynamic_th": "0",
+                "over_subscribe_ratio": "0"
+            }
         }
     },
     "SAMPLE_CONFIG_DB_UNKNOWN": {

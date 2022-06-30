@@ -25,7 +25,7 @@ steps:
       git config --global user.name "Sonic Automation"
       git config pull.rebase false
 
-      target_branches="202106 202111 master"
+      target_branches="202106 202111 master $(branches)"
       for branch in $target_branches; do
         base_branch=${branch}
         target_branch=${branch}

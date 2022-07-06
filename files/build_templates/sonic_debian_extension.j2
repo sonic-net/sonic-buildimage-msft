@@ -427,6 +427,18 @@ sudo chmod og-rw $FILESYSTEM_ROOT_ETC_SONIC/core_analyzer.rc.json
 
 sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install libffi-dev libssl-dev
 
+{% if include_bootchart == 'y' %}
+sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install systemd-bootchart
+sudo tee $FILESYSTEM_ROOT_ETC/systemd/bootchart.conf > /dev/null <<EOF
+[Bootchart]
+Samples=4500
+Frequency=25
+EOF
+{% if enable_bootchart == 'y' %}
+sudo LANG=C chroot $FILESYSTEM_ROOT systemctl enable systemd-bootchart
+{% endif %}
+{% endif %}
+
 if [[ $CONFIGURED_ARCH == armhf ]]; then
     # The azure-storage package depends on the cryptography package. Newer
     # versions of cryptography require the rust compiler, the correct version
@@ -523,6 +535,9 @@ then
     sudo cp platform/{{ sonic_asic_platform }}/zero_profiles.j2 $FILESYSTEM_ROOT/usr/share/sonic/templates/zero_profiles.j2
 fi
 {% endif %}
+
+# Copy backend acl template
+sudo cp $BUILD_TEMPLATES/backend_acl.j2 $FILESYSTEM_ROOT_USR_SHARE_SONIC_TEMPLATES/
 
 # Copy hostname configuration scripts
 sudo cp $IMAGE_CONFIGS/hostname/hostname-config.service $FILESYSTEM_ROOT_USR_LIB_SYSTEMD_SYSTEM

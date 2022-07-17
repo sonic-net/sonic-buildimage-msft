@@ -233,23 +233,7 @@ class TestJ2Files(TestCase):
         self.assertEqual(sample_output_json, output_json)
 
     def test_qos_arista7050_render_template(self):
-        arista_dir_path = os.path.join(self.test_dir, '..', '..', '..', 'device', 'arista', 'x86_64-arista_7050_qx32s', 'Arista-7050-QX-32S')
-        qos_file = os.path.join(arista_dir_path, 'qos.json.j2')
-        port_config_ini_file = os.path.join(arista_dir_path, 'port_config.ini')
-
-        # copy qos_config.j2 to the Arista 7050 directory to have all templates in one directory
-        qos_config_file = os.path.join(self.test_dir, '..', '..', '..', 'files', 'build_templates', 'qos_config.j2')
-        shutil.copy2(qos_config_file, arista_dir_path)
-
-        argument = '-m ' + self.arista7050_t0_minigraph + ' -p ' + port_config_ini_file + ' -t ' + qos_file + ' > ' + self.output_file
-        self.run_script(argument)
-
-        # cleanup
-        qos_config_file_new = os.path.join(arista_dir_path, 'qos_config.j2')
-        os.remove(qos_config_file_new)
-
-        sample_output_file = os.path.join(self.test_dir, 'sample_output', utils.PYvX_DIR, 'qos-arista7050.json')
-        assert utils.cmp(sample_output_file, self.output_file), self.run_diff(sample_output_file, self.output_file)
+        self._test_qos_render_template('arista', 'x86_64-arista_7050_qx32s', 'Arista-7050-QX-32S', 'sample-arista-7050-t0-minigraph.xml', 'qos-arista7050.json')
 
     def do_test_qos_and_buffer_arista7800r3_48cq2_lc_render_template(self, platform, hwsku):
         arista_dir_path = os.path.join(self.test_dir, '..', '..', '..', 'device', 'arista', platform, hwsku)
@@ -282,41 +266,32 @@ class TestJ2Files(TestCase):
         self.do_test_qos_and_buffer_arista7800r3_48cq2_lc_render_template('x86_64-arista_7800r3_48cqm2_lc', 'Arista-7800R3-48CQM2-C48')
 
     def test_qos_dell9332_render_template(self):
-        dell_dir_path = os.path.join(self.test_dir, '..', '..', '..', 'device', 'dell', 'x86_64-dellemc_z9332f_d1508-r0', 'DellEMC-Z9332f-O32')
-        qos_file = os.path.join(dell_dir_path, 'qos.json.j2')
-        port_config_ini_file = os.path.join(dell_dir_path, 'port_config.ini')
+        self._test_qos_render_template('dell', 'x86_64-dellemc_z9332f_d1508-r0', 'DellEMC-Z9332f-O32', 'sample-dell-9332-t1-minigraph.xml', 'qos-dell9332.json')
 
-        # copy qos_config.j2 to the Dell Z9332 directory to have all templates in one directory
-        qos_config_file = os.path.join(self.test_dir, '..', '..', '..', 'files', 'build_templates', 'qos_config.j2')
-        shutil.copy2(qos_config_file, dell_dir_path)
-
-        argument = '-m ' + self.dell9332_t1_minigraph + ' -p ' + port_config_ini_file + ' -t ' + qos_file + ' > ' + self.output_file
-        self.run_script(argument)
-
-        # cleanup
-        qos_config_file_new = os.path.join(dell_dir_path, 'qos_config.j2')
-        os.remove(qos_config_file_new)
-
-        sample_output_file = os.path.join(self.test_dir, 'sample_output', utils.PYvX_DIR, 'qos-dell9332.json')
-        assert utils.cmp(sample_output_file, self.output_file), self.run_diff(sample_output_file, self.output_file)
-   
     def test_qos_dell6100_render_template(self):
-        dell_dir_path = os.path.join(self.test_dir, '..', '..', '..', 'device', 'dell', 'x86_64-dell_s6100_c2538-r0', 'Force10-S6100')
-        qos_file = os.path.join(dell_dir_path, 'qos.json.j2')
-        port_config_ini_file = os.path.join(dell_dir_path, 'port_config.ini')
+        self._test_qos_render_template('dell', 'x86_64-dell_s6100_c2538-r0', 'Force10-S6100', 'sample-dell-6100-t0-minigraph.xml', 'qos-dell6100.json')
 
-        # copy qos_config.j2 to the Dell S6100 directory to have all templates in one directory
+    def _test_qos_render_template(self, vendor, platform, sku, minigraph, expected):
+        file_exist, dir_exist = self.create_machine_conf(platform, vendor)
+        dir_path = os.path.join(self.test_dir, '..', '..', '..', 'device', vendor, platform, sku)
+        qos_file = os.path.join(dir_path, 'qos.json.j2')
+        port_config_ini_file = os.path.join(dir_path, 'port_config.ini')
+
+        # copy qos_config.j2 to the SKU directory to have all templates in one directory
         qos_config_file = os.path.join(self.test_dir, '..', '..', '..', 'files', 'build_templates', 'qos_config.j2')
-        shutil.copy2(qos_config_file, dell_dir_path)
+        shutil.copy2(qos_config_file, dir_path)
 
-        argument = '-m ' + self.dell6100_t0_minigraph + ' -p ' + port_config_ini_file + ' -t ' + qos_file + ' > ' + self.output_file
+        minigraph = os.path.join(self.test_dir, minigraph)
+        argument = '-m ' + minigraph + ' -p ' + port_config_ini_file + ' -t ' + qos_file + ' > ' + self.output_file
         self.run_script(argument)
 
         # cleanup
-        qos_config_file_new = os.path.join(dell_dir_path, 'qos_config.j2')
+        qos_config_file_new = os.path.join(dir_path, 'qos_config.j2')
         os.remove(qos_config_file_new)
+ 
+        self.remove_machine_conf(file_exist, dir_exist)
 
-        sample_output_file = os.path.join(self.test_dir, 'sample_output', utils.PYvX_DIR, 'qos-dell6100.json')
+        sample_output_file = os.path.join(self.test_dir, 'sample_output', utils.PYvX_DIR, expected)
         assert utils.cmp(sample_output_file, self.output_file), self.run_diff(sample_output_file, self.output_file)
 
     def test_qos_dscp_remapping_render_template(self):
@@ -330,7 +305,8 @@ class TestJ2Files(TestCase):
             '../../../device/arista/x86_64-arista_7260cx3_64/Arista-7260CX3-C64',
             '../../../device/arista/x86_64-arista_7050cx3_32s/Arista-7050CX3-32S-D48C8',
             '../../../device/arista/x86_64-arista_7260cx3_64/Arista-7260CX3-D108C8',
-            '../../../device/arista/x86_64-arista_7260cx3_64/Arista-7260CX3-C64'
+            '../../../device/arista/x86_64-arista_7260cx3_64/Arista-7260CX3-C64',
+            '../../../device/arista/x86_64-arista_7050_qx32s/Arista-7050-QX-32S'
             ]
         sample_outputs = [
             'qos-arista7050cx3-dualtor.json',
@@ -338,7 +314,8 @@ class TestJ2Files(TestCase):
             'qos-arista7260-t1.json',
             'qos-arista7050cx3-dualtor-remap-disabled.json',
             'qos-arista7260-dualtor-remap-disabled.json',
-            'qos-arista7260-t1-remap-disabled.json'
+            'qos-arista7260-t1-remap-disabled.json',
+            'qos-arista7050-t0-storage-backend.json'
         ]
         sample_minigraph_files = [
             'sample-arista-7050cx3-dualtor-minigraph.xml',
@@ -346,7 +323,8 @@ class TestJ2Files(TestCase):
             'sample-arista-7260-t1-minigraph.xml',
             'sample-arista-7050cx3-dualtor-minigraph-remap-disabled.xml',
             'sample-arista-7260-dualtor-minigraph-remap-disabled.xml',
-            'sample-arista-7260-t1-minigraph-remap-disabled.xml'
+            'sample-arista-7260-t1-minigraph-remap-disabled.xml',
+            'sample-arista-7050-t0-storage-backend-minigraph.xml'
         ]
         for i, path in enumerate(dir_paths):
             device_template_path = os.path.join(self.test_dir, path)

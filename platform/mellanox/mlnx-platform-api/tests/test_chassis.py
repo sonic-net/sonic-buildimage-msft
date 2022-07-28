@@ -29,9 +29,11 @@ modules_path = os.path.dirname(test_path)
 sys.path.insert(0, modules_path)
 
 import sonic_platform.chassis
+from sonic_platform_base.sfp_base import SfpBase
 from sonic_platform.chassis import Chassis
 from sonic_platform.device_data import DeviceDataManager
 
+sonic_platform.chassis.extract_RJ45_ports_index = mock.MagicMock(return_value=[])
 
 class TestChassis:
     """Test class to test chassis.py. The test cases covers:
@@ -281,3 +283,17 @@ class TestChassis:
         sonic_platform.chassis.DMI_FILE = old_dmi_file
         os.system("rm -f " + new_dmi_file)
         assert rev == "N/A"
+
+    def test_get_port_or_cage_type(self):
+        chassis = Chassis()
+        chassis._RJ45_port_inited = True
+        chassis._RJ45_port_list = [0]
+        assert SfpBase.SFP_PORT_TYPE_BIT_RJ45 == chassis.get_port_or_cage_type(1)
+
+        exceptionRaised = False
+        try:
+            chassis.get_port_or_cage_type(2)
+        except NotImplementedError:
+            exceptionRaised = True
+
+        assert exceptionRaised

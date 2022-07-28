@@ -27,13 +27,15 @@ try:
     from sonic_py_common.logger import Logger
     import os
     from functools import reduce
-
+    from .utils import extract_RJ45_ports_index
     from . import utils
     from .device_data import DeviceDataManager
 except ImportError as e:
     raise ImportError (str(e) + "- required module not found")
 
 MAX_SELECT_DELAY = 3600
+
+RJ45_TYPE = "RJ45"
 
 DMI_FILE = '/sys/firmware/dmi/entries/2-0/raw'
 DMI_HEADER_LEN = 15
@@ -106,6 +108,12 @@ class Chassis(ChassisBase):
         self.sfp_initialized_count = 0
         self.sfp_event = None
         self.reboot_cause_initialized = False
+
+        self.sfp_module = None
+
+        # Build the RJ45 port list from platform.json and hwsku.json
+        self.RJ45_port_list = extract_RJ45_ports_index()
+
         logger.log_info("Chassis loaded successfully")
 
     def __del__(self):
@@ -113,9 +121,8 @@ class Chassis(ChassisBase):
             self.sfp_event.deinitialize()
 
         if self._sfp_list:
-            from .sfp import SFP, deinitialize_sdk_handle
-            if SFP.shared_sdk_handle:
-                deinitialize_sdk_handle(SFP.shared_sdk_handle)
+            if self.sfp_module.SFP.shared_sdk_handle:
+                self.sfp_module.deinitialize_sdk_handle(sfp_module.SFP.shared_sdk_handle)
 
     ##############################################
     # PSU methods
@@ -234,6 +241,12 @@ class Chassis(ChassisBase):
     # SFP methods
     ##############################################
 
+    def _import_sfp_module(self):
+        if not self.sfp_module:
+            from . import sfp as sfp_module
+            self.sfp_module = sfp_module
+        return self.sfp_module
+
     def initialize_single_sfp(self, index):
         sfp_count = self.get_num_sfps()
         if index < sfp_count:
@@ -241,23 +254,32 @@ class Chassis(ChassisBase):
                 self._sfp_list = [None] * sfp_count
 
             if not self._sfp_list[index]:
-                from .sfp import SFP
-                self._sfp_list[index] = SFP(index)
+                sfp_module = self._import_sfp_module()
+                if self.RJ45_port_list and index in self.RJ45_port_list:
+                    self._sfp_list[index] = sfp_module.RJ45Port(index)
+                else:
+                    self._sfp_list[index] = sfp_module.SFP(index)
                 self.sfp_initialized_count += 1
 
     def initialize_sfp(self):
         if not self._sfp_list:
-            from .sfp import SFP
+            sfp_module = self._import_sfp_module()
             sfp_count = self.get_num_sfps()
             for index in range(sfp_count):
-                sfp_module = SFP(index)
-                self._sfp_list.append(sfp_module)
+                if self.RJ45_port_list and index in self.RJ45_port_list:
+                    sfp_object = sfp_module.RJ45Port(index)
+                else:
+                    sfp_object = sfp_module.SFP(index)
+                self._sfp_list.append(sfp_object)
             self.sfp_initialized_count = sfp_count
         elif self.sfp_initialized_count != len(self._sfp_list):
-            from .sfp import SFP
+            sfp_module = self._import_sfp_module()
             for index in range(len(self._sfp_list)):
                 if self._sfp_list[index] is None:
-                    self._sfp_list[index] = SFP(index)
+                    if self.RJ45_port_list and index in self.RJ45_port_list:
+                        self._sfp_list[index] = sfp_module.RJ45Port(index)
+                    else:
+                        self._sfp_list[index] = sfp_module.SFP(index)
             self.sfp_initialized_count = len(self._sfp_list)
 
     def get_num_sfps(self):
@@ -297,6 +319,30 @@ class Chassis(ChassisBase):
         self.initialize_single_sfp(index)
         return super(Chassis, self).get_sfp(index)
 
+    def get_port_or_cage_type(self, index):
+        """
+        Retrieves sfp port or cage type corresponding to physical port <index>
+
+        Args:
+            index: An integer (>=0), the index of the sfp to retrieve.
+                   The index should correspond to the physical port in a chassis.
+                   For example:-
+                   1 for Ethernet0, 2 for Ethernet4 and so on for one platform.
+                   0 for Ethernet0, 1 for Ethernet4 and so on for another platform.
+
+        Returns:
+            The masks of all types of port or cage that can be supported on the port
+            Types are defined in sfp_base.py
+            Eg.
+                Both SFP and SFP+ are supported on the port, the return value should be 0x0a
+                which is 0x02 | 0x08
+        """
+        index = index - 1
+        if self.RJ45_port_list and index in self.RJ45_port_list:
+            from sonic_platform_base.sfp_base import SfpBase
+            return SfpBase.SFP_PORT_TYPE_BIT_RJ45
+        raise NotImplementedError
+
     def get_change_event(self, timeout=0):
         """
         Returns a nested dictionary containing all devices which have
@@ -324,7 +370,7 @@ class Chassis(ChassisBase):
         # Initialize SFP event first
         if not self.sfp_event:
             from .sfp_event import sfp_event
-            self.sfp_event = sfp_event()
+            self.sfp_event = sfp_event(self.RJ45_port_list)
             self.sfp_event.initialize()
 
         wait_for_ever = (timeout == 0)
@@ -340,7 +386,8 @@ class Chassis(ChassisBase):
             status = self.sfp_event.check_sfp_status(port_dict, error_dict, timeout)
 
         if status:
-            self.reinit_sfps(port_dict)
+            if port_dict:
+                self.reinit_sfps(port_dict)
             result_dict = {'sfp':port_dict}
             if error_dict:
                 result_dict['sfp_error'] = error_dict
@@ -515,8 +562,8 @@ class Chassis(ChassisBase):
             from .component import ComponentONIE, ComponentSSD, ComponentBIOS, ComponentCPLD
             self._component_list.append(ComponentONIE())
             self._component_list.append(ComponentSSD())
-            self._component_list.append(ComponentBIOS())
-            self._component_list.extend(ComponentCPLD.get_component_list())
+            self._component_list.append(DeviceDataManager.get_bios_component())
+            self._component_list.extend(DeviceDataManager.get_cpld_component_list())
 
     def get_num_components(self):
         """

@@ -40,6 +40,10 @@ CHASSIS_INFO_SERIAL_FIELD = 'serial'
 CHASSIS_INFO_MODEL_FIELD = 'model'
 CHASSIS_INFO_REV_FIELD = 'revision'
 
+# Cacheable Objects
+sonic_ver_info = {}
+hw_info_dict = {}
+
 def get_localhost_info(field, config_db=None):
     try:
         # TODO: enforce caller to provide config_db explicitly and remove its default value
@@ -334,14 +338,17 @@ def get_sonic_version_info():
     if not os.path.isfile(SONIC_VERSION_YAML_PATH):
         return None
 
-    data = {}
+    global sonic_ver_info
+    if sonic_ver_info:
+        return sonic_ver_info
+
     with open(SONIC_VERSION_YAML_PATH) as stream:
         if yaml.__version__ >= "5.1":
-            data = yaml.full_load(stream)
+            sonic_ver_info = yaml.full_load(stream)
         else:
-            data = yaml.load(stream)
+            sonic_ver_info = yaml.load(stream)
 
-    return data
+    return sonic_ver_info
 
 def get_sonic_version_file():
     if not os.path.isfile(SONIC_VERSION_YAML_PATH):
@@ -355,9 +362,12 @@ def get_platform_info(config_db=None):
     """
     This function is used to get the HW info helper function
     """
-    from .multi_asic import get_num_asics
+    global hw_info_dict
 
-    hw_info_dict = {}
+    if hw_info_dict:
+        return hw_info_dict
+
+    from .multi_asic import get_num_asics
 
     version_info = get_sonic_version_info()
 
@@ -433,7 +443,7 @@ def is_multi_npu():
 
 def is_voq_chassis():
     switch_type = get_platform_info().get('switch_type')
-    return True if switch_type and switch_type == 'voq' else False
+    return True if switch_type and (switch_type == 'voq' or switch_type == 'fabric') else False
 
 
 def is_packet_chassis():
@@ -460,6 +470,14 @@ def is_supervisor():
                     return True
         return False
 
+def get_device_runtime_metadata():
+    chassis_metadata = {}
+    if is_chassis():
+        chassis_metadata = {'CHASSIS_METADATA': {'module_type' : 'supervisor' if is_supervisor() else 'linecard', 
+                                                'chassis_type': 'voq' if is_voq_chassis() else 'packet'}}
+
+    port_metadata = {'ETHERNET_PORTS_PRESENT': True if get_path_to_port_config_file(hwsku=None, asic="0" if is_multi_npu() else None) else False}
+    return {'DEVICE_RUNTIME_METADATA': chassis_metadata | port_metadata }
 
 def get_npu_id_from_name(npu_name):
     if npu_name.startswith(NPU_NAME_PREFIX):

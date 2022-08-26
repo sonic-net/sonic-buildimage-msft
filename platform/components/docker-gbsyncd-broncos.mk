@@ -1,5 +1,8 @@
-LIBSAI_BRONCOS = libsaibroncos_0.0.1_amd64.deb
-$(LIBSAI_BRONCOS)_URL =
+LIBSAI_BRONCOS_VERSION = 3.8
+LIBSAI_BRONCOS_BRANCH_NAME = REL_3.8
+LIBSAI_BRONCOS_URL_PREFIX = "https://sonicstorage.blob.core.windows.net/public/sai/bcmpai/$(LIBSAI_BRONCOS_BRANCH_NAME)/$(LIBSAI_BRONCOS_VERSION)"
+LIBSAI_BRONCOS = libsaibroncos_$(LIBSAI_BRONCOS_VERSION)_amd64.deb
+$(LIBSAI_BRONCOS)_URL = "$(LIBSAI_BRONCOS_URL_PREFIX)/$(LIBSAI_BRONCOS)"
 
 ifneq ($($(LIBSAI_BRONCOS)_URL),)
 
@@ -27,6 +30,7 @@ $(DOCKER_GBSYNCD_BRONCOS)_CONTAINER_NAME = gbsyncd
 $(DOCKER_GBSYNCD_BRONCOS)_RUN_OPT += --privileged -t
 $(DOCKER_GBSYNCD_BRONCOS)_RUN_OPT += -v /host/machine.conf:/etc/machine.conf
 $(DOCKER_GBSYNCD_BRONCOS)_RUN_OPT += -v /etc/sonic:/etc/sonic:ro
+$(DOCKER_GBSYNCD_BRONCOS)_RUN_OPT += -v /host/warmboot:/var/warmboot
 
 SONIC_ONLINE_DEBS += $(LIBSAI_BRONCOS)
 

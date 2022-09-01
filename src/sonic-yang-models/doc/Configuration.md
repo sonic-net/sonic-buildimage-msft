@@ -19,6 +19,7 @@ Table of Contents
          * [Buffer port egress profile list](#buffer-port-egress-profile-list)  
          * [Cable length](#cable-length)  
          * [COPP_TABLE](#copp_table)  
+         * [Console](#console)  
          * [CRM](#crm)  
          * [Data Plane L3 Interfaces](#data-plane-l3-interfaces)  
          * [DEFAULT_LOSSLESS_BUFFER_PARAMETER](#DEFAULT_LOSSLESS_BUFFER_PARAMETER)  
@@ -34,9 +35,10 @@ Table of Contents
          * [Management port](#management-port)  
          * [Management VRF](#management-vrf)  
          * [MAP_PFC_PRIORITY_TO_QUEUE](#map_pfc_priority_to_queue)  
+         * [MUX_CABLE](#muxcable)  
          * [NTP Global Configuration](#ntp-global-configuration)  
          * [NTP and SYSLOG servers](#ntp-and-syslog-servers)  
-         * [Peer Switch](#peer-switch)
+         * [Peer Switch](#peer-switch)  
          * [Policer](#policer)   
          * [Port](#port)   
          * [Port Channel](#port-channel)  
@@ -687,6 +689,29 @@ This kind of profiles will be handled by buffer manager and won't be applied to 
 }
 ```
 
+### Console
+
+```
+{
+"CONSOLE_PORT": {
+    "1": {
+        "baud_rate": "115200",
+        "flow_control": "0",
+        "remote_device": "host-1"
+    },
+    "2": {
+        "baud_rate": "9600",
+        "flow_control": "1"
+    }
+  },
+"CONSOLE_SWITCH": {
+    "console_mgmt": {
+        "enabled": "yes"
+    }
+  }
+}
+```
+
 ### CRM
 
 ```
@@ -1066,6 +1091,24 @@ instead of data network.
   }
 }
 ```
+### MUX_CABLE
+
+The **MUX_CABLE** table is used for dualtor interface configuration. The `cable_type` and `soc_ipv4` objects are optional. 
+
+```
+{
+    "MUX_CABLE": {
+        "Ethernet4": {
+            "cable_type": "active-active",
+            "server_ipv4": "192.168.0.2/32",
+            "server_ipv6": "fc02:1000::30/128",
+            "soc_ipv4": "192.168.0.3/32",
+            "state": "auto"
+        }
+    }
+}
+```
+
 ### NTP Global Configuration
 
 These configuration options are used to modify the way that

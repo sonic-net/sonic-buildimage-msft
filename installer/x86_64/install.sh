@@ -622,13 +622,20 @@ if [ "$install_env" = "onie" ]; then
     mv $onie_initrd_tmp/tmp/onie-support*.tar.bz2 $demo_mnt/$image_dir/
 
     if [ "$firmware" = "uefi" ] ; then
-        secure_boot_state=$(mokutil --sb-state)
+        if command -v mokutil >/dev/null 2>&1; then
+            # The command exists, so execute it
+            secure_boot_state=$(mokutil --sb-state)
+        else
+            # The command doesn't exist, so output an error message
+            echo "mokutil not found, to enable Secure Boot required to update ONIE to at least version 2021.11"
+            secure_boot_state="SecureBoot disabled"
+        fi    
         echo secure_boot_state=$secure_boot_state
         if [ "$secure_boot_state" = "SecureBoot enabled" ]; then
-            echo "UEFI Secure Boot is enabled"
+            echo "UEFI Secure Boot is enabled - Installing shim bootloader"
             demo_install_uefi_shim "$demo_mnt" "$blk_dev"
         else
-            echo "UEFI Secure Boot is disabled"
+            echo "UEFI Secure Boot is disabled - Installing regular grub bootloader"
             demo_install_uefi_grub "$demo_mnt" "$blk_dev"
         fi
     else

@@ -621,17 +621,19 @@ if [ "$install_env" = "onie" ]; then
     ${onie_bin} onie-support /tmp
     mv $onie_initrd_tmp/tmp/onie-support*.tar.bz2 $demo_mnt/$image_dir/
 
+    echo "firmware=$firmware"
     if [ "$firmware" = "uefi" ] ; then
-        if command -v mokutil >/dev/null 2>&1; then
-            # The command exists, so execute it
-            secure_boot_state=$(mokutil --sb-state)
-        else
-            # The command doesn't exist, so output an error message
-            echo "mokutil not found, to enable Secure Boot required to update ONIE to at least version 2021.11"
-            secure_boot_state="SecureBoot disabled"
-        fi    
+        secure_boot_state=0
+        reg_sb_guid=""
+        ENABLED=1
+        echo "checking secure boot state"
+        reg_sb_guid=$(efivar -l | grep "SecureBoot") || echo "Secure Boot GUID not found in efivar list"
+        echo "Secure Boot GUID=$reg_sb_guid"
+        if [ -n "$reg_sb_guid" ]; then
+            secure_boot_state=$(efivar -d --name $reg_sb_guid) || echo "Could not read Secure Boot state from efivar"
+        fi
         echo secure_boot_state=$secure_boot_state
-        if [ "$secure_boot_state" = "SecureBoot enabled" ]; then
+        if expr "$secure_boot_state" : '[[:digit:]]\{1,\}' >/dev/null && [ "$secure_boot_state" -eq "$ENABLED" ]; then    
             echo "UEFI Secure Boot is enabled - Installing shim bootloader"
             demo_install_uefi_shim "$demo_mnt" "$blk_dev"
         else

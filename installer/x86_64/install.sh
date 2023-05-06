@@ -627,7 +627,7 @@ if [ "$install_env" = "onie" ]; then
         reg_sb_guid=""
         ENABLED=1
         echo "checking secure boot state"
-        reg_sb_guid=$(efivar -l | grep "SecureBoot") || echo "Secure Boot GUID not found in efivar list"
+        reg_sb_guid=$(efivar -l | grep "SecureBoot$") || echo "Secure Boot GUID not found in efivar list"
         echo "Secure Boot GUID=$reg_sb_guid"
         if [ -n "$reg_sb_guid" ]; then
             secure_boot_state=$(efivar -d --name $reg_sb_guid) || echo "Could not read Secure Boot state from efivar"

@@ -35,7 +35,7 @@
 	url = https://github.com/p4lang/ptf.git
 [submodule "src/sonic-utilities"]
 	path = src/sonic-utilities
-	url = https://github.com/sonic-net/sonic-utilities
+	url = https://github.com/Azure/sonic-utilities.msft
     branch = 202205
 [submodule "platform/broadcom/sonic-platform-modules-arista"]
 	path = platform/broadcom/sonic-platform-modules-arista

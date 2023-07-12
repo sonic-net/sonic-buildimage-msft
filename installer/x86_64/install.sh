@@ -758,7 +758,7 @@ echo "EXTRA_CMDLINE_LINUX=$extra_cmdline_linux"
 GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX $extra_cmdline_linux"
 GRUB_CFG_LINUX_CMD=""
 GRUB_CFG_INITRD_CMD=""
-if [ "$firmware" = "uefi" ] ; then
+if [ "$firmware" = "uefi" ] &&  expr "$secure_boot_state" : '[[:digit:]]\{1,\}' >/dev/null && [ "$secure_boot_state" -eq "$ENABLED" ]; then
     # grub.cfg when BIOS is UEFI and support Secure Boot
     GRUB_CFG_LINUX_CMD="linuxefi"
     GRUB_CFG_INITRD_CMD="initrdefi"

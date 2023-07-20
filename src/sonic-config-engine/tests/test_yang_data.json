@@ -377,5 +377,27 @@
                 "ipv6_neighbor_threshold_type": "used"
             }
         }
+    },
+    "sonic-fabric-monitor:sonic-fabric-monitor": {
+        "sonic-fabric-monitor:FABRIC_MONITOR": {
+            "FABRIC_MONITOR_DATA": {
+                "monErrThreshCrcCells": "1",
+                "monErrThreshRxCells": "61035156",
+                "monPollThreshIsolation": "1",
+                "monPollThreshRecovery": "8"
+            }
+        }
+    },
+    "sonic-fabric-port:sonic-fabric-port": {
+        "sonic-fabric-port:FABRIC_PORT": {
+            "FABRIC_PORT_LIST": [
+                {
+                    "name": "Fabric0",
+                    "alias": "Fabric0",
+                    "isolateStatus": "False",
+                    "lanes": "0"
+                }
+            ]
+        }
     }
 }

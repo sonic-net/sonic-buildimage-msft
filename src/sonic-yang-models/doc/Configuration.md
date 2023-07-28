@@ -27,6 +27,8 @@ Table of Contents
          * [Device neighbor metada](#device-neighbor-metada)
          * [DHCP_RELAY](#dhcp_relay)
          * [DSCP_TO_TC_MAP](#dscp_to_tc_map)  
+         * [FABRIC_MONITOR](#fabric-monitor)
+         * [FABRIC_PORT](#fabric-port)
          * [FLEX_COUNTER_TABLE](#flex_counter_table) 
          * [IPv6 Link-local] (#ipv6-link-local)  
          * [KDUMP](#kdump)  
@@ -896,6 +898,37 @@ instance is supported in SONiC.
 
 ```
 
+### FABRIC_MONITOR
+```
+{
+"FABRIC_MONITOR": {
+    "FABRIC_MONITOR_DATA": {
+        "monErrThreshCrcCells": "1",
+        "monErrThreshRxCells": "61035156",
+        "monPollThreshIsolation": "1",
+        "monPollThreshRecovery": "8"
+    }
+  }
+}
+```
+
+### FABRIC_PORT
+```
+{
+"FABRIC_PORT": {
+    "Fabric0": {
+        "alias": "Fabric0",
+        "isolateStatus": "False",
+        "lanes": "0"
+    },
+    "Fabric1": {
+        "alias": "Fabric1",
+        "isolateStatus": "False",
+        "lanes": "1"
+    }
+  }
+}
+```
 
 ### MPLS_TC_TO_TC_MAP
 ```

@@ -22,15 +22,5 @@
                     }
             }
         }
-    },
-    "MUX_LINKMGR_MUXLOGGER_CHANGE_VERBOSITY_LEVEL": {
-        "sonic-mux-linkmgr:sonic-mux-linkmgr": {
-            "sonic-mux-linkmgr:MUX_LINKMGR": {
-                "sonic-mux-linkmgr:MUXLOGGER": 
-                    {
-                        "log_verbosity": "debug"
-                    }
-            }
-        }
     }
 }

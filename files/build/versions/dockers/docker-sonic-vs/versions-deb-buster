@@ -138,7 +138,7 @@ libselinux1-dev==2.8-1+b1
 libsepol1-dev==2.8-1
 libsm-dev==2:1.2.3-1
 libsm6==2:1.2.3-1
-libssl-dev==1.1.1n-0+deb10u5
+libssl-dev==1.1.1n-0+deb10u6
 libstdc++-8-dev==8.3.0-6
 libsystemd-dev==241-7~deb10u10
 libsystemd0==241-7~deb10u10
@@ -171,9 +171,9 @@ logrotate==3.14.0-4
 lsof==4.91+dfsg-1
 make==4.2.1-1.2
 ndisc6==1.0.4-1
-openssh-client==1:7.9p1-10+deb10u2
-openssh-server==1:7.9p1-10+deb10u2
-openssh-sftp-server==1:7.9p1-10+deb10u2
+openssh-client==1:7.9p1-10+deb10u3
+openssh-server==1:7.9p1-10+deb10u3
+openssh-sftp-server==1:7.9p1-10+deb10u3
 patch==2.7.6-3+deb10u1
 pinentry-curses==1.1.0-2
 pkg-config==0.29-6

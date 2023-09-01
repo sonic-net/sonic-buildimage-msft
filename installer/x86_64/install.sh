@@ -598,7 +598,7 @@ CPUVENDOR="$(cat /proc/cpuinfo | grep -m 1 vendor_id | awk '{print $3}')"
 echo "Switch CPU vendor is: $CPUVENDOR"
 if echo "$CPUVENDOR" | grep -i 'Intel' >/dev/null 2>&1; then
     echo "Switch CPU cstates are: disabled"
-    CSTATES="intel_idle.max_cstate=0"
+    CSTATES="processor.max_cstate=1 intel_idle.max_cstate=0"
 else
     CSTATES=""
 fi

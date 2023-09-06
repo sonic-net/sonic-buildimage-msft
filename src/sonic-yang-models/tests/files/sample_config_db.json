@@ -1965,16 +1965,16 @@
          },
          "ACL_TABLE_TYPE": {
              "CUSTOM_L3": {
-                 "matches": [
+                 "MATCHES": [
                      "IN_PORTS",
                      "OUT_PORTS",
                      "SRC_IP"
                  ],
-                 "actions": [
+                 "ACTIONS": [
                      "PACKET_ACTION",
                      "MIRROR_INGRESS_ACTION"
                  ],
-                 "bind_points": [
+                 "BIND_POINTS": [
                      "PORT",
                      "LAG"
                  ]

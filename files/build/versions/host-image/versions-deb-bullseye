@@ -39,7 +39,7 @@ eatmydata==105-9
 ebtables==2.0.11-4+b1
 efibootmgr==17-1
 fdisk==2.36.1-8+deb11u1
-file==1:5.39-3
+file==1:5.39-3+deb11u1
 firmware-amd-graphics==20210315-3
 firmware-linux-nonfree==20210315-3
 firmware-misc-nonfree==20210315-3
@@ -185,7 +185,7 @@ libjq1==1.6-2.1
 libjs-jquery==3.5.1+dfsg+~3.5.5-7
 libjs-sphinxdoc==3.4.3-2
 libjs-underscore==1.9.1~dfsg-3
-libjson-c5==0.15-2
+libjson-c5==0.15-2+deb11u1
 libklibc==2.0.8-6.1
 libkmod2==28-1
 libksba8==1.5.0-3+deb11u2
@@ -193,8 +193,8 @@ libldap-2.4-2==2.4.57+dfsg-3+deb11u1
 liblognorm5==2.0.5-1.1
 liblsan0==10.2.1-6
 liblzo2-2==2.10-2
-libmagic-mgc==1:5.39-3
-libmagic1==1:5.39-3
+libmagic-mgc==1:5.39-3+deb11u1
+libmagic1==1:5.39-3+deb11u1
 libmd0==1.0.3-3
 libmnl0==1.0.4-3
 libmount-dev==2.36.1-8+deb11u1

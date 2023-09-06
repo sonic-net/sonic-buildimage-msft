@@ -6,7 +6,7 @@ dvipng==1.15-1.1
 faketime==0.9.8-9
 gir1.2-nautilus-3.0==3.38.2-1+deb11u1
 gir1.2-poppler-0.18==20.09.0-3.1+deb11u1
-gir1.2-rsvg-2.0==2.50.3+dfsg-1
+gir1.2-rsvg-2.0==2.50.3+dfsg-1+deb11u1
 golang-1.15-go==1.15.15-1~deb11u4
 golang-1.15-src==1.15.15-1~deb11u4
 libclang-11-dev==1:11.0.1-2

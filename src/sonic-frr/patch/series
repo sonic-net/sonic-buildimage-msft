@@ -15,3 +15,4 @@ Disable-ipv6-src-address-test-in-pceplib.patch
 0028-bgpd-Ensure-that-bgp-open-message-stream-has-enough-data-to-read.patch
 0029-bgpd-Change-log-level-for-graceful-restart-events.patch
 0030-zebra-remove-duplicated-nexthops-when-sending-fpm-msg.patch
+0031-lib-Fix-corruption-when-routemap-delete-add-sequence.patch

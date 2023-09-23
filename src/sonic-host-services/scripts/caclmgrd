@@ -277,19 +277,24 @@ class ControlPlaneAclManager(daemon_base.DaemonBase):
 
     def get_chassis_midplane_interface_ip(self):
 
+        chassis_midplane_dev_name_command = "ip -4 -o addr show " + "eth1-midplane" +\
+                                             " | awk '{print $0}' | cut -d' ' -f2"
+
+        midplane_dev_name = self.run_commands([chassis_midplane_dev_name_command])
+
         chassis_midplane_ip_command = "ip -4 -o addr show " + "eth1-midplane" +\
                                  " | awk '{print $4}' | cut -d'/' -f1 | head -1"
-        return self.run_commands([chassis_midplane_ip_command])
-
+        midplane_ip = self.run_commands([chassis_midplane_ip_command])
+        return midplane_dev_name, midplane_ip
 
     def generate_allow_internal_chasis_midplane_traffic(self, namespace):
         allow_internal_chassis_midplane_traffic = []
         if not namespace:
-            chassis_midplane_ip = self.get_chassis_midplane_interface_ip()
+            midplane_dev_name, chassis_midplane_ip = self.get_chassis_midplane_interface_ip()
             if not chassis_midplane_ip:
                 return allow_internal_chassis_midplane_traffic
             allow_internal_chassis_midplane_traffic.append("iptables -A INPUT -s {} -d {} -j ACCEPT".format(chassis_midplane_ip, chassis_midplane_ip))
-            allow_internal_chassis_midplane_traffic.append("iptables -A INPUT -i eth1-midplane -j ACCEPT")
+            allow_internal_chassis_midplane_traffic.append("iptables -A INPUT -i {} -j ACCEPT".format(midplane_dev_name))
 
         return allow_internal_chassis_midplane_traffic
 

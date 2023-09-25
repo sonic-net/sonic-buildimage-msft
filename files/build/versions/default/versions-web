@@ -67,7 +67,7 @@ https://github.com/Mellanox/Spectrum-SDK-Drivers-SONiC-Bins/releases/download/sd
 https://github.com/Mellanox/Spectrum-SDK-Drivers-SONiC-Bins/releases/download/sdk-4.5.4206-bullseye-amd64/sxd-libs_1.mlnx.4.5.4206_amd64.deb==e641d556c8a63be9c835fd7da5fda49d
 https://github.com/Mellanox/Spectrum-SDK-Drivers-SONiC-Bins/releases/download/sdk-4.5.4206-bullseye-amd64/wjh-libs-dev_1.mlnx.4.5.4206_amd64.deb==dbb74e081196bcb66f31c579974dcbec
 https://github.com/Mellanox/Spectrum-SDK-Drivers-SONiC-Bins/releases/download/sdk-4.5.4206-bullseye-amd64/wjh-libs_1.mlnx.4.5.4206_amd64.deb==b1d66ada73cd89ab967d387a2343e3c3
-https://github.com/Mellanox/Spectrum-SDK-Drivers/archive/refs/heads/4.5.4206.zip==4023e1caab572dfd1c80f9a9ed1087cc
+https://github.com/Mellanox/Spectrum-SDK-Drivers/archive/refs/heads/4.5.4206.zip==3133c519712be3804bc2c6a8085945cb
 https://github.com/nanomsg/nanomsg/archive/1.0.0.tar.gz==6f56ef28c93cee644e8c4aaaef7cfb55
 https://launchpad.net/debian/+archive/primary/+sourcefiles/bash/5.1-2/bash_5.1-2.debian.tar.xz==9d0cbd5f463f461c840c95f62a64d61b
 https://launchpad.net/debian/+archive/primary/+sourcefiles/bash/5.1-2/bash_5.1-2.dsc==be44c5a9fc12fb567a486f54b842dd9e
@@ -149,7 +149,7 @@ https://sonicstorage.blob.core.windows.net/public/fips/bullseye/0.8/arm64/symcry
 https://sonicstorage.blob.core.windows.net/public/sai/bcmpai/REL_3.8/3.8/libsaibroncos_3.8_amd64.deb==f7c3f0ed8c97c2572e3c2e59faaae4a8
 https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.54.4-3/libsaibcm-dev_7.1.54.4-3_amd64.deb==f24f6dd832601f2fd17cde874863215b
 https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.54.4-3/libsaibcm_7.1.54.4-3_amd64.deb==65c8916ec6b4355be4b5f8a9b3526c6c
-https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.60.4/libsaibcm_dnx_7.1.60.4_amd64.deb==3c9c74a2b25997c6665b3cffac015129
+https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.60.4-1/libsaibcm_dnx_7.1.60.4-1_amd64.deb==5288f38d711d0af0ec18ef08b60be8b4
 https://storage.googleapis.com/golang/go1.14.2.linux-amd64.tar.gz==856d248e3ea8a287d13e5f6afd086282
 https://storage.googleapis.com/golang/go1.14.2.linux-arm64.tar.gz==e5f79b403701e00f20d13f0ea561b064
 https://storage.googleapis.com/golang/go1.14.2.linux-armv6l.tar.gz==04467414e783b18de4278e9f24baf4be

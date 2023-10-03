@@ -141,8 +141,8 @@ libgirepository-1.0-1==1.58.3-2
 libgl1==1.1.0-1
 libgl1-mesa-dri==18.3.6-2+deb10u1
 libglapi-mesa==18.3.6-2+deb10u1
-libglib2.0-0==2.58.3-2+deb10u4
-libglib2.0-data==2.58.3-2+deb10u4
+libglib2.0-0==2.58.3-2+deb10u5
+libglib2.0-data==2.58.3-2+deb10u5
 libglvnd0==1.1.0-1
 libglx-mesa0==18.3.6-2+deb10u1
 libglx0==1.1.0-1
@@ -151,8 +151,8 @@ libgnutls30==3.6.7-4+deb10u10
 libgomp1==8.3.0-6
 libgpm2==1.20.7-5
 libgraphite2-3==1.3.13-7
-libgs9==9.27~dfsg-2+deb10u8
-libgs9-common==9.27~dfsg-2+deb10u8
+libgs9==9.27~dfsg-2+deb10u9
+libgs9-common==9.27~dfsg-2+deb10u9
 libgssapi-krb5-2==1.17-3+deb10u5
 libgts-0.7-5==0.7.6+darcs121130-4
 libgts-bin==0.7.6+darcs121130-4

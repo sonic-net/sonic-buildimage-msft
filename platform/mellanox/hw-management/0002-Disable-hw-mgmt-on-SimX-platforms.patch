@@ -1,47 +1,85 @@
-From 422b64397f2f33b394d037820f0ceb4c09e3a725 Mon Sep 17 00:00:00 2001
-From: Alexander Allen <arallen@nvidia.com>
-Date: Fri, 21 Jan 2022 16:47:19 +0000
-Subject: [PATCH 2/4] Disable hw-mgmt on SimX platforms
+From e8e57139136577c4f0f3e06fd0af00c28a5d556e Mon Sep 17 00:00:00 2001
+From: Junchao-Mellanox <junchao@nvidia.com>
+Date: Tue, 5 Sep 2023 17:15:56 +0800
+Subject: [PATCH] [PATCH] [PATCH 2/4] Disable hw-mgmt on SimX platforms
 
 ---
- usr/usr/bin/hw-management-ready.sh | 11 +++++++----
- usr/usr/bin/hw-management.sh       |  9 +++++++++
- 2 files changed, 16 insertions(+), 4 deletions(-)
+ usr/usr/bin/hw-management-ready.sh |  6 ++++++
+ usr/usr/bin/hw-management.sh       | 23 ++++++++++++++++-------
+ 2 files changed, 22 insertions(+), 7 deletions(-)
 
 diff --git a/usr/usr/bin/hw-management-ready.sh b/usr/usr/bin/hw-management-ready.sh
-index 88672a8..7558c68 100755
+index 2b736d2..649c125 100755
 --- a/usr/usr/bin/hw-management-ready.sh
 +++ b/usr/usr/bin/hw-management-ready.sh
-@@ -51,17 +51,20 @@ if [ -d /var/run/hw-management ]; then
- 	rm -fr /var/run/hw-management
- fi
+@@ -39,6 +39,12 @@
+ #              Waits in loop until hw-management service can be started.
+ #              Report start of hw-management service to console and logger.
  
--case $board_type in
--VMOD0014)
-+if [ -z "$(lspci -vvv | grep SimX)" ]; then
-+    case $board_type in
-+    VMOD0014)
- 	if [ ! -d /sys/devices/pci0000:00/0000:00:1f.0/NVSN2201:00/mlxreg-hotplug/hwmon ]; then
- 		timeout 180 bash -c 'until [ -d /sys/devices/pci0000:00/0000:00:1f.0/NVSN2201:00/mlxreg-hotplug/hwmon ]; do sleep 0.2; done'
- 	fi
- 	;;
--*)
-+    *)
- 	if [ ! -d /sys/devices/platform/mlxplat/mlxreg-hotplug/hwmon ]; then
- 		timeout 180 bash -c 'until [ -d /sys/devices/platform/mlxplat/mlxreg-hotplug/hwmon ]; do sleep 0.2; done'
- 	fi
- 	;;
--esac
-+    esac
++if [ -n "$(lspci -vvv | grep SimX)" ]; then
++    echo "Start Chassis HW management service."
++    logger -t hw-management -p daemon.notice "Start Chassis HW management service."
++	exit 0
 +fi
 +
- echo "Start Chassis HW management service."
- logger -t hw-management -p daemon.notice "Start Chassis HW management service."
+ board_type=`cat /sys/devices/virtual/dmi/id/board_name`
+ 
+ if systemctl is-active --quiet hw-management; then
 diff --git a/usr/usr/bin/hw-management.sh b/usr/usr/bin/hw-management.sh
-index 1ee05b5..50d922b 100755
+index 1591665..aa8a2b5 100755
 --- a/usr/usr/bin/hw-management.sh
 +++ b/usr/usr/bin/hw-management.sh
-@@ -2310,6 +2310,13 @@ do_chip_down()
+@@ -505,7 +505,7 @@ function restore_i2c_bus_frequency_default()
+ function find_regio_sysfs_path_helper()
+ {
+ 	# Find hwmon{n} sysfs path for regio device
+-	case $board_type in 
++	case $board_type in
+ 	VMOD0014)
+ 		for path in /sys/devices/pci0000:00/*/NVSN2201:*/mlxreg-io/hwmon/hwmon*; do
+ 			if [ -d "$path" ]; then
+@@ -668,10 +668,10 @@ set_jtag_gpio()
+ 	gpio_tdi=$((gpiobase+jtag_tdi))
+ 	echo $gpio_tdi > /sys/class/gpio/"$export_unexport"
+ 
+-	# In SN2201 system. 
++	# In SN2201 system.
+ 	# GPIO0 for CPU request to reset the Main Board I2C Mux.
+-	# GPIO1 for CPU control the CPU Board MUX when doing the ISP programming. 
+-	# GPIO13 for CPU request Main Board JTAG control signal. 
++	# GPIO1 for CPU control the CPU Board MUX when doing the ISP programming.
++	# GPIO13 for CPU request Main Board JTAG control signal.
+ 	if [ "$board_type" == "VMOD0014" ]; then
+ 		mux_reset=27
+ 		jtag_mux_en=33
+@@ -1209,7 +1209,7 @@ connect_msn4700_msn4600_A1()
+ 		#  msn4600C with removed A2D
+ 		connect_table+=(${msn4600C_A1_base_connect_table[@]})
+ 	else
+-		# msn4700/msn4600 respin 
++		# msn4700/msn4600 respin
+ 		connect_table+=(${msn4700_msn4600_A1_base_connect_table[@]})
+ 	fi
+ 	add_cpu_board_to_connection_table
+@@ -1985,7 +1985,7 @@ create_symbolic_links()
+ 	fi
+ 	if [ ! -d $thermal_path ]; then
+ 		mkdir $thermal_path
+-	fi	
++	fi
+ 	if [ ! -d $config_path ]; then
+ 		mkdir $config_path
+ 	fi
+@@ -2169,7 +2169,7 @@ do_start()
+ 	check_system
+ 	set_asic_pci_id
+ 
+-	asic_control=$(< $config_path/asic_control) 
++	asic_control=$(< $config_path/asic_control)
+ 	if [[ $asic_control -ne 0 ]]; then
+ 		get_asic_bus
+ 		get_asic2_bus
+@@ -2344,6 +2344,13 @@ do_chip_down()
  	/usr/bin/hw-management-thermal-events.sh change hotplug_asic down %S %p
  }
  
@@ -55,8 +93,8 @@ index 1ee05b5..50d922b 100755
  __usage="
  Usage: $(basename "$0") [Options]
  
-@@ -2335,6 +2342,8 @@ Options:
- 	force-reload	Performs hw-management 'stop' and the 'start.
+@@ -2370,6 +2377,8 @@ Options:
+ 	reset-cause	Output system reset cause.
  "
  
 +check_simx
@@ -65,5 +103,5 @@ index 1ee05b5..50d922b 100755
  	start)
  		if [ -d /var/run/hw-management ]; then
 -- 
-2.20.1
+1.9.1
 

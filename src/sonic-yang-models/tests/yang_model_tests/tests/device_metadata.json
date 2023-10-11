@@ -120,6 +120,12 @@
     "DEVICE_METADATA_INVALID_RACK_MGMT_MAP": {
         "desc": "Verifying invalid rack_mgmt_map configuration.",
         "eStr": "Invalid length for the rack mgmt map."
+    },
+    "DEVICE_METADATA_VALID_CREATE_ONLY_CONFIG_DB_BUFFERS": {
+        "desc": "Verifying the create_only_config_db_buffers value"
+    },
+    "DEVICE_METADATA_INVALID_CREATE_ONLY_CONFIG_DB_BUFFERS": {
+        "desc": "Verifying invalid create_only_config_db_buffers value",
+        "eStrKey": "InvalidValue"
     }
-
 }

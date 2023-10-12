@@ -241,6 +241,67 @@ class TestFeatureHandler(TestCase):
         assert swss_feature.has_global_scope
         assert not swss_feature.has_per_asic_scope
 
+    @mock.patch('hostcfgd.FeatureHandler.update_systemd_config', mock.MagicMock())
+    @mock.patch('hostcfgd.FeatureHandler.update_feature_state', mock.MagicMock())
+    @mock.patch('hostcfgd.FeatureHandler.sync_feature_asic_scope', mock.MagicMock())
+    def test_feature_resync(self):
+        mock_db = mock.MagicMock()
+        mock_db.get_entry = mock.MagicMock()
+        mock_db.mod_entry = mock.MagicMock()
+        mock_feature_state_table = mock.MagicMock()
+
+        feature_handler = hostcfgd.FeatureHandler(mock_db, mock_feature_state_table, {})
+        feature_table = {
+            'sflow': {
+                'state': 'enabled',
+                'auto_restart': 'enabled',
+                'delayed': 'True',
+                'has_global_scope': 'False',
+                'has_per_asic_scope': 'True',
+            }
+        }
+        mock_db.get_entry.return_value = None
+        feature_handler.sync_state_field(feature_table)
+        mock_db.mod_entry.assert_called_with('FEATURE', 'sflow', {'state': 'enabled'})
+        mock_db.mod_entry.reset_mock()
+
+        feature_handler = hostcfgd.FeatureHandler(mock_db, mock_feature_state_table, {})
+        mock_db.get_entry.return_value = {
+            'state': 'disabled',
+        }
+        feature_handler.sync_state_field(feature_table)
+        mock_db.mod_entry.assert_not_called()
+
+        feature_handler = hostcfgd.FeatureHandler(mock_db, mock_feature_state_table, {})
+        feature_table = {
+            'sflow': {
+                'state': 'always_enabled',
+                'auto_restart': 'enabled',
+                'delayed': 'True',
+                'has_global_scope': 'False',
+                'has_per_asic_scope': 'True',
+            }
+        }
+        feature_handler.sync_state_field(feature_table)
+        mock_db.mod_entry.assert_called_with('FEATURE', 'sflow', {'state': 'always_enabled'})
+        mock_db.mod_entry.reset_mock()
+
+        feature_handler = hostcfgd.FeatureHandler(mock_db, mock_feature_state_table, {})
+        mock_db.get_entry.return_value = {
+            'state': 'some template',
+        }
+        feature_table = {
+            'sflow': {
+                'state': 'enabled',
+                'auto_restart': 'enabled',
+                'delayed': 'True',
+                'has_global_scope': 'False',
+                'has_per_asic_scope': 'True',
+            }
+        }
+        feature_handler.sync_state_field(feature_table)
+        mock_db.mod_entry.assert_called_with('FEATURE', 'sflow', {'state': 'enabled'})
+
 
 class TesNtpCfgd(TestCase):
     """

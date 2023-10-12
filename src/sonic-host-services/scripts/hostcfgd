@@ -352,7 +352,7 @@ class FeatureHandler(object):
         # sync has_per_asic_scope to CONFIG_DB in namespaces in multi-asic platform
         for ns, db in self.ns_cfg_db.items():
             db.mod_entry('FEATURE', feature_config.name, {'has_per_asic_scope': str(feature_config.has_per_asic_scope)})
-    
+
     def update_systemd_config(self, feature_config):
         """Updates `Restart=` field in feature's systemd configuration file
         according to the value of `auto_restart` field in `FEATURE` table of `CONFIG_DB`.
@@ -427,7 +427,7 @@ class FeatureHandler(object):
             unit_file_state = self.get_systemd_unit_state("{}.{}".format(feature_name, feature_suffixes[-1]))
             if unit_file_state == "enabled" or not unit_file_state:
                 continue
-            cmds = []    
+            cmds = []
             for suffix in feature_suffixes:
                 cmds.append("sudo systemctl unmask {}.{}".format(feature_name, suffix))
 
@@ -474,11 +474,28 @@ class FeatureHandler(object):
         self.set_feature_state(feature, self.FEATURE_STATE_DISABLED)
 
     def resync_feature_state(self, feature):
-        self._config_db.mod_entry('FEATURE', feature.name, {'state': feature.state})
+        current_entry = self._config_db.get_entry('FEATURE', feature.name)
+        current_feature_state = current_entry.get('state') if current_entry else None
 
-        # resync the feature state to CONFIG_DB in namespaces in multi-asic platform
-        for ns, db in self.ns_cfg_db.items():
-            db.mod_entry('FEATURE', feature.name, {'state': feature.state})
+        if feature.state == current_feature_state:
+            return
+
+        # feature.state might be rendered from a template, so that it should resync CONFIG DB
+        # FEATURE table to override the template value to valid state value
+        # ('always_enabled', 'always_disabled', 'disabled', 'enabled'). However, we should only
+        # resync feature state in two cases:
+        #     1. the rendered feature state is always_enabled or always_disabled, it means that the
+        #        feature state is immutable and potential state change during HostConfigDaemon.load
+        #        in redis should be skipped;
+        #     2. the current feature state in DB is a template which should be replaced by rendered feature
+        #        state
+        # For other cases, we should not resync feature.state to CONFIG DB to avoid overriding user configuration.
+        if self._feature_state_is_immutable(feature.state) or self._feature_state_is_template(current_feature_state):
+            self._config_db.mod_entry('FEATURE', feature.name, {'state': feature.state})
+
+            # resync the feature state to CONFIG_DB in namespaces in multi-asic platform
+            for ns, db in self.ns_cfg_db.items():
+                db.mod_entry('FEATURE', feature.name, {'state': feature.state})
 
     def set_feature_state(self, feature, state):
         self._feature_state_table.set(feature.name, [('state', state)])
@@ -486,6 +503,12 @@ class FeatureHandler(object):
         # Update the feature state to STATE_DB in namespaces in multi-asic platform
         for ns, tbl in self.ns_feature_state_tbl.items():
             tbl.set(feature.name, [('state', state)])
+
+    def _feature_state_is_template(self, feature_state):
+        return feature_state not in ('always_enabled', 'always_disabled', 'disabled', 'enabled')
+
+    def _feature_state_is_immutable(self, feature_state):
+        return feature_state in ('always_enabled', 'always_disabled')
 
 class Iptables(object):
     def __init__(self):

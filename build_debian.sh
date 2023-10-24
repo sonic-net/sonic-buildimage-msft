@@ -59,14 +59,23 @@ TRUSTED_GPG_DIR=$BUILD_TOOL_PATH/trusted.gpg.d
     exit 1
 }
 
+if [ "$IMAGE_TYPE" = "aboot" ]; then
+    TARGET_BOOTLOADER="aboot"
+fi
+
 ## Prepare the file system directory
 if [[ -d $FILESYSTEM_ROOT ]]; then
     sudo rm -rf $FILESYSTEM_ROOT || die "Failed to clean chroot directory"
 fi
 mkdir -p $FILESYSTEM_ROOT
 mkdir -p $FILESYSTEM_ROOT/$PLATFORM_DIR
-mkdir -p $FILESYSTEM_ROOT/$PLATFORM_DIR/grub
 touch $FILESYSTEM_ROOT/$PLATFORM_DIR/firsttime
+
+bootloader_packages=""
+if [ "$TARGET_BOOTLOADER" != "aboot" ]; then
+    mkdir -p $FILESYSTEM_ROOT/$PLATFORM_DIR/grub
+    bootloader_packages="grub2-common"
+fi
 
 ## ensure proc is mounted
 sudo mount proc /proc -t proc || true
@@ -375,7 +384,7 @@ sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y in
     gdisk                   \
     sysfsutils              \
     squashfs-tools          \
-    grub2-common            \
+    $bootloader_packages    \
     screen                  \
     hping3                  \
     tcptraceroute           \
@@ -778,6 +787,18 @@ sudo rm -f $ONIE_INSTALLER_PAYLOAD $FILESYSTEM_SQUASHFS
 sudo du -hsx $FILESYSTEM_ROOT
 sudo mkdir -p $FILESYSTEM_ROOT/var/lib/docker
 sudo cp files/image_config/resolv-config/resolv.conf $FILESYSTEM_ROOT/etc/resolv.conf
+
+## Optimize filesystem size
+if [ "$BUILD_REDUCE_IMAGE_SIZE" = "y" ]; then
+   sudo scripts/build-optimize-fs-size.py "$FILESYSTEM_ROOT" \
+      --image-type "$IMAGE_TYPE" \
+      --hardlinks var/lib/docker \
+      --hardlinks usr/share/sonic/device \
+      --remove-docs \
+      --remove-mans \
+      --remove-licenses
+fi
+
 sudo mksquashfs $FILESYSTEM_ROOT $FILESYSTEM_SQUASHFS -comp zstd -b 1M -e boot -e var/lib/docker -e $PLATFORM_DIR
 
 # Ensure admin gid is 1000

@@ -40,6 +40,8 @@ chassis_backend_role = 'ChassisBackendRouter'
 backend_device_types = ['BackEndToRRouter', 'BackEndLeafRouter']
 console_device_types = ['MgmtTsToR']
 dhcp_server_enabled_device_types = ['BmcMgmtToRRouter']
+leafrouter_device_types = ['LeafRouter']
+
 VLAN_SUB_INTERFACE_SEPARATOR = '.'
 VLAN_SUB_INTERFACE_VLAN_ID = '10'
 
@@ -2066,6 +2068,10 @@ def parse_xml(filename, platform=None, port_config_file=None, asic_name=None, hw
     # Enable DHCP Server feature for specific device type
     if current_device and current_device['type'] in dhcp_server_enabled_device_types:
         results['DEVICE_METADATA']['localhost']['dhcp_server'] = 'enabled'
+
+    # Enable bgp-suppress-fib by default for leafrouter
+    if current_device and current_device['type'] in leafrouter_device_types:
+        results['DEVICE_METADATA']['localhost']['suppress-fib-pending'] = 'enabled'
 
     return results
 

@@ -936,7 +936,7 @@ libplexus-languages-java==0.9.10-1
 libplexus-sec-dispatcher-java==1.4-4
 libplexus-utils2-java==3.1.1-1
 libplexus-velocity-java==1.2-3
-libpmix2==3.1.2-3
+libpmix2==3.1.2-3+deb10u1
 libpng-dev==1.6.36-6
 libpng-tools==1.6.36-6
 libpng16-16==1.6.36-6

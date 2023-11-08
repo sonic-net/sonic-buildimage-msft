@@ -969,7 +969,7 @@ libplexus-sec-dispatcher-java==1.4-4
 libplexus-utils2-java==3.3.0-1
 libplexus-velocity-java==1.2-3.1
 libpmem1==1.10-2+deb11u1
-libpmix2==4.0.0-4.1
+libpmix2==4.0.0-4.1+deb11u1
 libpng-dev==1.6.37-3
 libpng-tools==1.6.37-3
 libpng16-16==1.6.37-3

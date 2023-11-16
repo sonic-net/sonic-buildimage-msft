@@ -122,3 +122,6 @@
 [submodule "src/dhcpmon"]
 	path = src/dhcpmon
 	url = https://github.com/sonic-net/sonic-dhcpmon.git
+[submodule "platform/marvell-arm64/mrvl-prestera"]
+	path = platform/marvell-arm64/mrvl-prestera
+	url = https://github.com/Marvell-switching/mrvl-prestera.git

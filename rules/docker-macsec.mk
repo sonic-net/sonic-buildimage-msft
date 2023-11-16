@@ -38,9 +38,9 @@ endif
 $(DOCKER_MACSEC)_CONTAINER_NAME = macsec
 $(DOCKER_MACSEC)_VERSION = 1.0.0
 $(DOCKER_MACSEC)_PACKAGE_NAME = macsec
-$(DOCKER_MACSEC)_RUN_OPT += --privileged -t
-$(DOCKER_MACSEC)_RUN_OPT += -v /etc/sonic:/etc/sonic:ro
-$(DOCKER_MACSEC)_RUN_OPT += -v /host/warmboot:/var/warmboot
+$(DOCKER_MACSEC)_CONTAINER_PRIVILEGED = false
+$(DOCKER_MACSEC)_CONTAINER_VOLUMES += /etc/sonic:/etc/sonic:ro
+$(DOCKER_MACSEC)_CONTAINER_VOLUMES += /host/warmboot:/var/warmboot
 
 $(DOCKER_MACSEC)_SERVICE_REQUIRES = updategraph
 $(DOCKER_MACSEC)_SERVICE_AFTER = swss syncd

@@ -364,7 +364,20 @@ class FeatureHandler(object):
         Returns:
             None.
         """
-        restart_field_str = "always" if "enabled" in feature_config.auto_restart else "no"
+        # As per the current code(due to various dependencies) SWSS service stop/start also stops/starts the dependent services(syncd, teamd, bgpd etc)
+        # There is an issue seen of syncd service getting stopped twice upon a critical process crash in syncd service due to above reason.
+        # Also early start of syncd service has traffic impact on VOQ chassis.
+        # to fix the above issue, we are disabling the auto restart of syncd service as it will be started by swss service.
+        # This change can be extended to other dependent services as well in future and also on pizza box platforms.
+
+        device_type = self._device_config.get('DEVICE_METADATA', {}).get('localhost', {}).get('type')
+        is_dependent_service = feature_config.name in ['syncd', 'gbsyncd']
+        if device_type == 'SpineRouter' and is_dependent_service:
+            syslog.syslog(syslog.LOG_INFO, "Skipped setting Restart field in systemd for {}".format(feature_config.name))
+            restart_field_str = "no"
+        else:
+            restart_field_str = "always" if "enabled" in feature_config.auto_restart else "no"
+
         feature_systemd_config = "[Service]\nRestart={}\n".format(restart_field_str)
         feature_names, feature_suffixes = self.get_multiasic_feature_instances(feature_config)
 

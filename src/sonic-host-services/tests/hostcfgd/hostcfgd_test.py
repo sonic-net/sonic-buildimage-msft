@@ -45,7 +45,7 @@ class TestFeatureHandler(TestCase):
 
         return True if not ddiff else False
 
-    def checks_systemd_config_file(self, feature_table, feature_systemd_name_map=None):
+    def checks_systemd_config_file(self, device_type, feature_table, feature_systemd_name_map=None):
         """Checks whether the systemd configuration file of each feature was created or not
         and whether the `Restart=` field in the file is set correctly or not.
 
@@ -62,6 +62,7 @@ class TestFeatureHandler(TestCase):
                                                 'auto_restart.conf')
 
         for feature_name in feature_table:
+            is_dependent_feature = True if feature_name in ['syncd', 'gbsyncd'] else False
             auto_restart_status = feature_table[feature_name].get('auto_restart', 'disabled')
             if "enabled" in auto_restart_status:
                 auto_restart_status = "enabled"
@@ -77,7 +78,10 @@ class TestFeatureHandler(TestCase):
 
                 with open(feature_systemd_config_file_path) as systemd_config_file:
                     status = systemd_config_file.read().strip()
-                assert status == '[Service]\nRestart={}'.format(truth_table[auto_restart_status])
+                    if device_type == 'SpineRouter' and is_dependent_feature:
+                        assert status == '[Service]\nRestart=no'
+                    else:
+                        assert status == '[Service]\nRestart={}'.format(truth_table[auto_restart_status])
 
     def get_state_db_set_calls(self, feature_table):
         """Returns a Mock call objects which recorded the `set` calls to `FEATURE` table in `STATE_DB`.
@@ -134,6 +138,7 @@ class TestFeatureHandler(TestCase):
                             device_config = {}
                             device_config['DEVICE_METADATA'] = MockConfigDb.CONFIG_DB['DEVICE_METADATA']
                             device_config.update(config_data['device_runtime_metadata'])
+                            device_type = MockConfigDb.CONFIG_DB['DEVICE_METADATA']['localhost']['type']
 
                             feature_handler = hostcfgd.FeatureHandler(MockConfigDb(), feature_state_table_mock, device_config)
                             feature_table = MockConfigDb.CONFIG_DB['FEATURE']
@@ -158,13 +163,13 @@ class TestFeatureHandler(TestCase):
 
                             feature_table_state_db_calls = self.get_state_db_set_calls(feature_table)
 
-                            self.checks_systemd_config_file(config_data['config_db']['FEATURE'], feature_systemd_name_map)
+                            self.checks_systemd_config_file(device_type, config_data['config_db']['FEATURE'], feature_systemd_name_map)
                             mocked_subprocess.check_call.assert_has_calls(config_data['enable_feature_subprocess_calls'],
                                                                           any_order=True)
                             mocked_subprocess.check_call.assert_has_calls(config_data['daemon_reload_subprocess_call'],
                                                                           any_order=True)
                             feature_state_table_mock.set.assert_has_calls(feature_table_state_db_calls)
-                            self.checks_systemd_config_file(config_data['config_db']['FEATURE'], feature_systemd_name_map)
+                            self.checks_systemd_config_file(device_type, config_data['config_db']['FEATURE'], feature_systemd_name_map)
 
     @parameterized.expand(HOSTCFGD_TEST_VECTOR)
     @patchfs
@@ -196,6 +201,7 @@ class TestFeatureHandler(TestCase):
                         device_config = {}
                         device_config['DEVICE_METADATA'] = MockConfigDb.CONFIG_DB['DEVICE_METADATA']
                         device_config.update(config_data['device_runtime_metadata'])
+                        device_type = MockConfigDb.CONFIG_DB['DEVICE_METADATA']['localhost']['type']
                         feature_handler = hostcfgd.FeatureHandler(MockConfigDb(), feature_state_table_mock, device_config)
 
                         feature_table = MockConfigDb.CONFIG_DB['FEATURE']
@@ -207,7 +213,7 @@ class TestFeatureHandler(TestCase):
                             feature_names, _ = feature_handler.get_multiasic_feature_instances(feature)
                             feature_systemd_name_map[feature_name] = feature_names
 
-                        self.checks_systemd_config_file(config_data['config_db']['FEATURE'], feature_systemd_name_map)
+                        self.checks_systemd_config_file(device_type, config_data['config_db']['FEATURE'], feature_systemd_name_map)
                         mocked_subprocess.check_call.assert_has_calls(config_data['enable_feature_subprocess_calls'],
                                                                       any_order=True)
                         mocked_subprocess.check_call.assert_has_calls(config_data['daemon_reload_subprocess_call'],

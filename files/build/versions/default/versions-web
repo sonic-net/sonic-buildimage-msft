@@ -44,7 +44,7 @@ https://github.com/CentecNetworks/sonic-binaries/raw/master/amd64/third_party/ad
 https://github.com/CentecNetworks/sonic-binaries/raw/master/amd64/third_party/advantech/libSUSI-4.00.so.1==393a94b0abba146777e276e1febe0cb0
 https://github.com/CentecNetworks/sonic-binaries/raw/master/arm64/sai/libsai_1.9.1-0_arm64.deb==c354c766cc763a5af621a88637b9e126
 https://github.com/CumulusNetworks/ifupdown2/archive/3.0.0-1.tar.gz==755459b3a58fbc11625336846cea7420
-https://github.com/Marvell-switching/sonic-marvell-binaries/raw/master/armhf/sai-plugin/mrvllibsai_1.10.2-5_armhf.deb==f88ed9a03a3a0ade22e2a78d12051e07
+https://github.com/Marvell-switching/sonic-marvell-binaries/raw/master/armhf/sai-plugin/mrvllibsai_1.10.2-6_armhf.deb==4ad01cf475b42087fad4fcc5ee14d8b3
 https://github.com/Mellanox/Spectrum-SDK-Drivers-SONiC-Bins/releases/download/fw-2010.4316/fw-SPC-rel-13_2010_4316-EVB.mfa==12d1faa4f12fc0c3ef5fdae4451fea94
 https://github.com/Mellanox/Spectrum-SDK-Drivers-SONiC-Bins/releases/download/fw-2010.4316/fw-SPC2-rel-29_2010_4316-EVB.mfa==aeb69216740088a09362d50c1147d637
 https://github.com/Mellanox/Spectrum-SDK-Drivers-SONiC-Bins/releases/download/fw-2010.4316/fw-SPC3-rel-30_2010_4316-EVB.mfa==bf4180031e9dc9cfb68d2a9a9548349a
@@ -93,8 +93,8 @@ https://sonicstorage.blob.core.windows.net/debian/pool/main/n/net-snmp/net-snmp_
 https://sonicstorage.blob.core.windows.net/debian/pool/main/n/net-snmp/net-snmp_5.9+dfsg.orig.tar.xz==6c2d346ce3320e8999500497e9bacc99
 https://sonicstorage.blob.core.windows.net/packages/20190307/bcmcmd?sv=2015-04-05&sr=b&sig=sUdbU7oVbh5exbXXHVL5TDFBTWDDBASHeJ8Cp0B0TIc%3D&se=2038-05-06T22%3A34%3A19Z&sp=r==b8aefc751bdf93218716bca6797460ff
 https://sonicstorage.blob.core.windows.net/packages/20190307/dsserve?sv=2015-04-05&sr=b&sig=lk7BH3DtW%2F5ehc0Rkqfga%2BUCABI0UzQmDamBsZH9K6w%3D&se=2038-05-06T22%3A34%3A45Z&sp=r==f9d4b815ebb9be9f755dedca8a51170d
-https://sonicstorage.blob.core.windows.net/packages/credosai/libsaicredo-owl_0.8.2_amd64.deb?sv=2021-04-10&st=2023-01-31T04%3A25%3A43Z&se=2100-01-31T04%3A25%3A00Z&sr=b&sp=r&sig=%2BdSFujwy0gY%2FiH50Ffi%2FsqZOAHBOFPUcBdR06fHEZkI%3D==cca0a297f413bf6b01ea6761b040d527
-https://sonicstorage.blob.core.windows.net/packages/credosai/libsaicredo_0.8.2_amd64.deb?sv=2021-04-10&st=2023-01-31T04%3A24%3A23Z&se=2100-01-31T04%3A24%3A00Z&sr=b&sp=r&sig=RZPbmaIetvDRtwifrVT4s%2FaQxB%2FBTOyCqXtMtoNRjmY%3D==9107bab0c6295fecd4ab4cd48493bc3f
+https://sonicstorage.blob.core.windows.net/packages/credosai/libsaicredo-owl_0.9.3_amd64.deb?sv=2021-04-10&st=2023-10-12T02%3A21%3A51Z&se=2031-10-13T02%3A21%3A00Z&sr=b&sp=r&sig=olu3%2Bq5eJYRtXCygJWgKUx%2FdlrlB%2FWE0i9ruftYdB7g%3D==c69922a1589cf5615a3fddd5b66aa296
+https://sonicstorage.blob.core.windows.net/packages/credosai/libsaicredo_0.9.3_amd64.deb?sv=2021-04-10&st=2023-10-12T02%3A21%3A05Z&se=2031-10-13T02%3A21%3A00Z&sr=b&sp=r&sig=UXC%2FYKm%2BvHRjGmM3xjnFMQzY%2BMpxhKtMxNHQPdwvtN8%3D==0400bc2015f56bff7d4283c030be26cc
 https://sonicstorage.blob.core.windows.net/packages/debian/socat_1.7.4.1-3.debian.tar.xz?sv=2020-04-08&st=2021-12-14T08%3A00%3A00Z&se=2030-12-14T18%3A18%3A00Z&sr=b&sp=r&sig=C8aYSvaQgMJ58Z13kFY0Wr0J0QF6i7WCeET9%2BpF%2BAxc%3D==e8d1e99b4b9e93f5dde860f6d55f42e3
 https://sonicstorage.blob.core.windows.net/packages/debian/socat_1.7.4.1-3.dsc?sv=2020-04-08&st=2021-12-14T00%3A00%3A00Z&se=2050-12-15T00%3A00%3A00Z&sr=b&sp=r&sig=fIy6dVz3s59K0TiMkTlwSWN8lCzRl3i76ruAtROhfWA%3D==df3ed0dd965589fd09bf6a2920bc273e
 https://sonicstorage.blob.core.windows.net/packages/debian/socat_1.7.4.1.orig.tar.gz?sv=2020-04-08&st=2021-12-14T00%3A00%3A00Z&se=2050-12-15T00%3A00%3A00Z&sr=b&sp=r&sig=gpihyZv%2Fr0bVrCUKCKwpS4bIoqiPpdd%2BgCfuUGNHOUc%3D==780d14908dc1a6aa2790de376ab56b7a
@@ -149,9 +149,9 @@ https://sonicstorage.blob.core.windows.net/public/fips/bullseye/0.8/arm64/python
 https://sonicstorage.blob.core.windows.net/public/fips/bullseye/0.8/arm64/python3.9_3.9.2-1+fips_arm64.deb==4d6307dabcd3060235d6188cfa0346b8
 https://sonicstorage.blob.core.windows.net/public/fips/bullseye/0.8/arm64/symcrypt-openssl_0.8_arm64.deb==0ab2a6b1c621508eb5b39da92fd69060
 https://sonicstorage.blob.core.windows.net/public/sai/bcmpai/REL_3.8/3.8/libsaibroncos_3.8_amd64.deb==f7c3f0ed8c97c2572e3c2e59faaae4a8
-https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.60.4-1/libsaibcm_dnx_7.1.60.4-1_amd64.deb==5288f38d711d0af0ec18ef08b60be8b4
 https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.62.4/libsaibcm-dev_7.1.62.4_amd64.deb==862df9a0b9f883dcc526edf61bc92d04
 https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.62.4/libsaibcm_7.1.62.4_amd64.deb==fbbfa7fbaac0dbcdccd4dc3f5397c0dd
+https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.66.4/libsaibcm_dnx_7.1.66.4_amd64.deb==8cd37ff6d98d4ca8c397c3484f103daa
 https://storage.googleapis.com/golang/go1.14.2.linux-amd64.tar.gz==856d248e3ea8a287d13e5f6afd086282
 https://storage.googleapis.com/golang/go1.14.2.linux-arm64.tar.gz==e5f79b403701e00f20d13f0ea561b064
 https://storage.googleapis.com/golang/go1.14.2.linux-armv6l.tar.gz==04467414e783b18de4278e9f24baf4be

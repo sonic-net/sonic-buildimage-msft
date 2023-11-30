@@ -1153,7 +1153,7 @@ libthai-dev==0.1.28-3
 libthai0==0.1.28-3
 libtheora0==1.1.1+dfsg.1-15
 libtie-ixhash-perl==1.23-2.1
-libtiff5==4.2.0-1+deb11u4
+libtiff5==4.2.0-1+deb11u5
 libtime-duration-perl==1.21-1
 libtime-moment-perl==0.44-1+b3
 libtimedate-perl==2.3300-2

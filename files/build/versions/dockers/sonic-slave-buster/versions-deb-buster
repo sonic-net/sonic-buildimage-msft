@@ -50,7 +50,7 @@ cmake==3.13.4-1
 cmake-data==3.13.4-1
 cmocka-doc==1.1.3-1
 comerr-dev==2.1-1.44.5-1+deb10u3
-containerd.io==1.6.24-1
+containerd.io==1.6.25-1
 cowbuilder==0.88
 cowdancer==0.88
 cpio==2.12+dfsg-9+deb10u1
@@ -576,10 +576,11 @@ libgme0==0.6.2-1
 libgmock-dev==1.8.1-3
 libgmp-dev==2:6.1.2+dfsg-4+deb10u1
 libgmpxx4ldbl==2:6.1.2+dfsg-4+deb10u1
-libgnutls-dane0==3.6.7-4+deb10u10
-libgnutls-openssl27==3.6.7-4+deb10u10
-libgnutls28-dev==3.6.7-4+deb10u10
-libgnutlsxx28==3.6.7-4+deb10u10
+libgnutls-dane0==3.6.7-4+deb10u11
+libgnutls-openssl27==3.6.7-4+deb10u11
+libgnutls28-dev==3.6.7-4+deb10u11
+libgnutls30==3.6.7-4+deb10u11
+libgnutlsxx28==3.6.7-4+deb10u11
 libgomp1==8.3.0-6
 libgoogle-perftools4==2.7-1
 libgpgme11==1.12.0-6
@@ -1563,7 +1564,7 @@ python-twisted-bin==18.9.0-3+deb10u2
 python-twisted-core==18.9.0-3+deb10u2
 python-typing==3.6.6-1
 python-tz==2019.1-1
-python-urllib3==1.24.1-1+deb10u1
+python-urllib3==1.24.1-1+deb10u2
 python-webencodings==0.5.1-1
 python-wheel==0.32.3-2
 python-wrapt==1.10.11-1
@@ -1640,7 +1641,7 @@ python3-sphinx==1.8.4-1
 python3-sphinx-rtd-theme==0.4.3+dfsg-1
 python3-tz==2019.1-1
 python3-unidiff==0.5.4-1
-python3-urllib3==1.24.1-1+deb10u1
+python3-urllib3==1.24.1-1+deb10u2
 python3-wheel==0.32.3-2
 python3-xdg==0.25-5
 python3-yaml==3.13-2

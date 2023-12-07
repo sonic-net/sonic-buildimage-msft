@@ -433,7 +433,7 @@ libdbus-glib-1-2==0.110-4
 libdbus-glib-1-dev==0.110-4
 libdbus-glib-1-dev-bin==0.110-4
 libdconf1==0.30.1-2
-libde265-0==1.0.11-0+deb10u4
+libde265-0==1.0.11-0+deb10u5
 libdebhelper-perl==13.3.3~bpo10+1
 libdevel-callchecker-perl==0.008-1
 libdevel-caller-perl==2.06-2+b1
@@ -809,9 +809,10 @@ libnamespace-autoclean-perl==0.28-1
 libnamespace-clean-perl==0.27-1
 libnanomsg-dev==1.1.5+dfsg-1
 libnanomsg5==1.1.5+dfsg-1
-libncurses-dev==6.1+20181013-2+deb10u4
-libncurses5-dev==6.1+20181013-2+deb10u4
-libncurses6==6.1+20181013-2+deb10u4
+libncurses-dev==6.1+20181013-2+deb10u5
+libncurses5-dev==6.1+20181013-2+deb10u5
+libncurses6==6.1+20181013-2+deb10u5
+libncursesw6==6.1+20181013-2+deb10u5
 libnet-dbus-perl==1.1.0-5+b1
 libnet-dns-perl==1.19-1
 libnet-dns-sec-perl==1.11-1
@@ -1141,6 +1142,7 @@ libtheora0==1.1.1+dfsg.1-15
 libtie-ixhash-perl==1.23-2
 libtiff5==4.1.0+git191117-2~deb10u8
 libtimedate-perl==2.3000-2+deb10u1
+libtinfo6==6.1+20181013-2+deb10u5
 libtinyxml2-6a==7.0.0+dfsg-1
 libtinyxml2-dev==7.0.0+dfsg-1
 libtk8.6==8.6.9-2
@@ -1389,7 +1391,7 @@ mesa-vdpau-drivers==18.3.6-2+deb10u1
 mime-support==3.62
 module-assistant==0.11.10
 mysql-common==5.8+1.0.5
-ncurses-term==6.1+20181013-2+deb10u4
+ncurses-term==6.1+20181013-2+deb10u5
 netbase==5.6
 netpbm==2:10.0-15.3+b2
 nettle-dev==3.4.1-1+deb10u1

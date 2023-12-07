@@ -219,8 +219,8 @@ libmpc3==1.1.0-1
 libmpdec2==2.4.2-2
 libmpfr6==4.0.2-1
 libmpx2==8.3.0-6
-libncurses6==6.1+20181013-2+deb10u4
-libncursesw6==6.1+20181013-2+deb10u3
+libncurses6==6.1+20181013-2+deb10u5
+libncursesw6==6.1+20181013-2+deb10u5
 libnet-dbus-perl==1.1.0-5+b1
 libnet-http-perl==6.18-1
 libnet-smtp-ssl-perl==1.04-1
@@ -309,7 +309,7 @@ libthrift-0.11.0==0.11.0-4
 libtie-ixhash-perl==1.23-2
 libtiff5==4.1.0+git191117-2~deb10u8
 libtimedate-perl==2.3000-2+deb10u1
-libtinfo6==6.1+20181013-2+deb10u3
+libtinfo6==6.1+20181013-2+deb10u5
 libtk8.6==8.6.9-2
 libtry-tiny-perl==0.30-1
 libtsan0==8.3.0-6
@@ -379,9 +379,9 @@ make==4.2.1-1.2
 manpages==4.16-2
 manpages-dev==4.16-2
 mime-support==3.62
-ncurses-base==6.1+20181013-2+deb10u3
-ncurses-bin==6.1+20181013-2+deb10u3
-ncurses-term==6.1+20181013-2+deb10u4
+ncurses-base==6.1+20181013-2+deb10u5
+ncurses-bin==6.1+20181013-2+deb10u5
+ncurses-term==6.1+20181013-2+deb10u5
 net-tools==1.60+git20180626.aebd88e-1
 netbase==5.6
 ntp==1:4.2.8p12+dfsg-4

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES.
+# Copyright (c) 2019-2023 NVIDIA CORPORATION & AFFILIATES.
 # Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,6 +142,14 @@ class TestSfp:
 
             handle.read.side_effect = OSError('')
             assert sfp.read_eeprom(0, 1) is None
+
+    @mock.patch('sonic_platform.sfp.SFP._fetch_port_status')
+    def test_is_port_admin_status_up(self, mock_port_status):
+        mock_port_status.return_value = (0, True)
+        assert SFP.is_port_admin_status_up(None, None)
+
+        mock_port_status.return_value = (0, False)
+        assert not SFP.is_port_admin_status_up(None, None)
 
     @mock.patch('sonic_platform.sfp.SFP._get_eeprom_path', mock.MagicMock(return_value = None))
     @mock.patch('sonic_platform.sfp.SFP._get_sfp_type_str')

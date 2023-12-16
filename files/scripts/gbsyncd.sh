@@ -10,6 +10,7 @@ function startplatform() {
         if [ -z $($DB_CLI CONFIG_DB HGET 'FEATURE|gbsyncd' state) ]; then
             local CMD="local r=redis.call('DUMP', KEYS[1]); redis.call('RESTORE', KEYS[2], 0, r)"
             $DB_CLI CONFIG_DB EVAL "$CMD" 2 'FEATURE|syncd' 'FEATURE|gbsyncd'
+            $DB_CLI CONFIG_DB EVAL "$CMD" 2 'SYSLOG_CONFIG_FEATURE|syncd' 'SYSLOG_CONFIG_FEATURE|gbsyncd'
         fi
     done
 }

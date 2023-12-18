@@ -48,7 +48,7 @@ linux-libc-dev==5.10.197-1
 mailcap==3.69
 mft==4.22.1-15
 mime-support==3.66
-mlnx-sai==1.mlnx.SAIBuild2205.25.1.2
+mlnx-sai==1.mlnx.SAIBuild2205.25.1.27
 openssh-client==1:8.4p1-5+deb11u2
 python-dev-is-python2==2.7.18-9
 python-is-python2==2.7.18-9

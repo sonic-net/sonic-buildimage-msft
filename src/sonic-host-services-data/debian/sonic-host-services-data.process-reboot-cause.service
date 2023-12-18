@@ -1,8 +1,16 @@
 [Unit]
 Description=Retrieve the reboot cause from the history files and save them to StateDB
-Requires=database.service determine-reboot-cause.service
+PartOf=database.service
 After=database.service determine-reboot-cause.service
-
+ 
 [Service]
 Type=simple
+ExecStartPre=/usr/bin/systemctl is-active database
+ExecStartPre=/usr/bin/systemctl is-active determine-reboot-cause
+Restart=on-failure
+RestartSec=30
+RemainAfterExit=yes
 ExecStart=/usr/local/bin/process-reboot-cause
+
+[Install]
+WantedBy=multi-user.target

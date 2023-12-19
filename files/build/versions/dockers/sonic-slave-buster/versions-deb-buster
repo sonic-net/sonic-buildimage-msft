@@ -50,7 +50,7 @@ cmake==3.13.4-1
 cmake-data==3.13.4-1
 cmocka-doc==1.1.3-1
 comerr-dev==2.1-1.44.5-1+deb10u3
-containerd.io==1.6.25-1
+containerd.io==1.6.26-1
 cowbuilder==0.88
 cowdancer==0.88
 cpio==2.12+dfsg-9+deb10u1
@@ -291,7 +291,7 @@ libbinutils==2.31.1-16
 libbison-dev==2:3.3.2.dfsg-1
 libbit-vector-perl==7.4-1+b5
 libblkid-dev==2.33.1-0.1
-libbluetooth3==5.50-1.2~deb10u3
+libbluetooth3==5.50-1.2~deb10u4
 libbluray2==1:1.1.0-1+deb10u1
 libboost-atomic1.71-dev==1.71.0-6~bpo10+1
 libboost-atomic1.71.0==1.71.0-6~bpo10+1

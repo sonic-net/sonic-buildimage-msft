@@ -96,7 +96,7 @@ mailcap==3.69
 make==4.3-4.1
 mft==4.22.1-15
 mime-support==3.66
-mlnx-sai==1.mlnx.SAIBuild2205.25.1.2
+mlnx-sai==1.mlnx.SAIBuild2205.25.1.27
 netbase==6.3
 patch==2.7.6-7
 pkg-config==0.29.2-1

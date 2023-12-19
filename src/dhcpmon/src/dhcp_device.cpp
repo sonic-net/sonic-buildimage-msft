@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <inttypes.h>
 #include <libexplain/ioctl.h>
 #include <linux/filter.h>
 #include <netpacket/packet.h>
@@ -303,9 +304,6 @@ static void client_packet_handler(dhcp_device_context_t *context, uint8_t *buffe
                 offset += dhcp_option[offset + 1] + 2;
             }
         }
-    } else {
-        syslog(LOG_WARNING, "read_callback(%s %s): read length (%ld) is too small to capture DHCP options",
-               context->intf, dir == DHCP_TX ? "TX" : "RX", buffer_sz);
     }
 }
 
@@ -560,7 +558,8 @@ static void dhcp_print_counters(const char *vlan_intf,
 
     syslog(
         LOG_NOTICE,
-        "[%*s-%*s rx/tx] Discover: %*lu/%*lu, Offer: %*lu/%*lu, Request: %*lu/%*lu, ACK: %*lu/%*lu\n",
+        "[%*s-%*s rx/tx] Discover: %*" PRIu64 "/%*" PRIu64 ", Offer: %*" PRIu64 "/%*" PRIu64 
+        ", Request: %*" PRIu64 "/%*" PRIu64 ", ACK: %*" PRIu64 "/%*" PRIu64 "\n",
         IF_NAMESIZE, vlan_intf,
         (int) strlen(counter_desc[type]), counter_desc[type],
         DHCP_COUNTER_WIDTH, counters[DHCP_RX][DHCP_MESSAGE_TYPE_DISCOVER],

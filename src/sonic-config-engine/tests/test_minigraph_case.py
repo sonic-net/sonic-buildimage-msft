@@ -209,6 +209,7 @@ class TestCfgGenCaseInsensitive(TestCase):
 
         expected_table = {
             'switch2-t0': {
+                'cluster': 'DB5PrdApp11',
                 'lo_addr': '25.1.1.10/32',
                 'mgmt_addr': '10.7.0.196/26',
                 'hwsku': 'Force10-S6000',
@@ -228,7 +229,8 @@ class TestCfgGenCaseInsensitive(TestCase):
                 'hwsku': 'server-sku',
                 'type': 'Server'
             },
-            'switch-01t1': { 
+            'switch-01t1': {
+                'cluster': 'DB5PrdApp11',
                 'lo_addr': '10.1.0.186/32',
                 'deployment_id': '2',
                 'hwsku': 'Force10-S6000',
@@ -498,14 +500,14 @@ class TestCfgGenCaseInsensitive(TestCase):
 
     def test_minigraph_acl_type_bmcdata(self):
         expected_acl_type_bmcdata = {
-            "ACTIONS": "PACKET_ACTION,COUNTER",
-            "BIND_POINTS": "PORT",
-            "MATCHES": "SRC_IP,DST_IP,ETHER_TYPE,IP_TYPE,IP_PROTOCOL,IN_PORTS,L4_SRC_PORT,L4_DST_PORT,L4_SRC_PORT_RANGE,L4_DST_PORT_RANGE",
+            "ACTIONS": ["PACKET_ACTION", "COUNTER"],
+            "BIND_POINTS": ["PORT"],
+            "MATCHES": ["SRC_IP", "DST_IP", "ETHER_TYPE", "IP_TYPE", "IP_PROTOCOL", "IN_PORTS", "L4_SRC_PORT", "L4_DST_PORT", "L4_SRC_PORT_RANGE", "L4_DST_PORT_RANGE"],
         }
         expected_acl_type_bmcdatav6 = {
-            "ACTIONS": "PACKET_ACTION,COUNTER",
-            "BIND_POINTS": "PORT",
-            "MATCHES": "SRC_IPV6,DST_IPV6,ETHER_TYPE,IP_TYPE,IP_PROTOCOL,IN_PORTS,L4_SRC_PORT,L4_DST_PORT,L4_SRC_PORT_RANGE,L4_DST_PORT_RANGE",
+            "ACTIONS": ["PACKET_ACTION", "COUNTER"],
+            "BIND_POINTS": ["PORT"],
+            "MATCHES": ["SRC_IPV6", "DST_IPV6", "ETHER_TYPE", "IP_TYPE", "IP_PROTOCOL", "IN_PORTS", "L4_SRC_PORT", "L4_DST_PORT", "L4_SRC_PORT_RANGE", "L4_DST_PORT_RANGE", "ICMPV6_TYPE", "ICMPV6_CODE", "TCP_FLAGS"],
         }
         expected_acl_table_bmc_acl_northbound =  {
             'policy_desc': 'BMC_ACL_NORTHBOUND',
@@ -520,8 +522,8 @@ class TestCfgGenCaseInsensitive(TestCase):
             'type': 'BMCDATAV6',
         }
         # TC1: Minigraph contains acl table type BmcData
-        sample_graph = os.path.join(self.test_dir,'simple-sample-graph-case-acl-type-bmcdata.xml')
-        result = minigraph.parse_xml(sample_graph)
+        sample_mx_graph = os.path.join(self.test_dir,'simple-sample-graph-mx.xml')
+        result = minigraph.parse_xml(sample_mx_graph)
         self.assertIn('ACL_TABLE_TYPE', result)
         self.assertIn('BMCDATA', result['ACL_TABLE_TYPE'])
         self.assertIn('BMCDATAV6', result['ACL_TABLE_TYPE'])
@@ -549,3 +551,22 @@ class TestCfgGenCaseInsensitive(TestCase):
         self.assertEqual(len(mgmt_intf.keys()), 1)
         self.assertTrue(('eth0', 'FC00:1::32/64') in mgmt_intf.keys())
         self.assertTrue(ipaddress.ip_address(u'fc00:1::1') == mgmt_intf[('eth0', 'FC00:1::32/64')]['gwaddr'])
+
+    def test_mgmt_device_disable_counters(self):
+        expected_mgmt_disabled_counters = ["BUFFER_POOL_WATERMARK", "PFCWD", "PG_DROP", "PG_WATERMARK", "PORT_BUFFER_DROP", "QUEUE", "QUEUE_WATERMARK"]
+        expected_mgmt_enabled_counters = ["ACL", "PORT", "RIF"]
+        # TC1: For M0 and Mx minigraph, counters are configured as expected
+        mgmt_graphs = ['simple-sample-graph-mx.xml', 'simple-sample-graph-m0.xml']
+        for graph in mgmt_graphs:
+            graph_path = os.path.join(self.test_dir, graph)
+            result = minigraph.parse_xml(graph_path)
+            self.assertIn('FLEX_COUNTER_TABLE', result)
+            for counter in expected_mgmt_disabled_counters:
+                self.assertIn(counter, result['FLEX_COUNTER_TABLE'])
+                self.assertDictEqual(result['FLEX_COUNTER_TABLE'][counter], {'FLEX_COUNTER_STATUS': 'disable'})
+            for counter in expected_mgmt_enabled_counters:
+                if counter in result['FLEX_COUNTER_TABLE']:
+                    self.assertDictEqual(result['FLEX_COUNTER_TABLE'][counter], {'FLEX_COUNTER_STATUS': 'enable'})
+        # TC2: For other minigraph, result should not contain FLEX_COUNTER_TABLE
+        result = minigraph.parse_xml(self.sample_graph)
+        self.assertNotIn('FLEX_COUNTER_TABLE', result)

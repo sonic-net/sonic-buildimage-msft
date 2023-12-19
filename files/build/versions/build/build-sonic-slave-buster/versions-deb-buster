@@ -33,8 +33,4 @@ python3-thrift==0.14.1
 python3-yang==1.0.73
 sonic-mgmt-common==1.0.0
 sonic-mgmt-common-codegen==1.0.0
-sonic-mgmt-framework==1.0-01
-swss==1.0.0
-syncd==1.0.0
-syncd-vs==1.0.0
 thrift-compiler==0.11.0-4

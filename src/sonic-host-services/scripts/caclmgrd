@@ -41,8 +41,9 @@ def _ip_prefix_in_key(key):
     """
     return (isinstance(key, tuple))
 
-def get_ip_from_interface_table(table, intf_name):
-
+def get_ipv4_networks_from_interface_table(table, intf_name):
+    
+    addresses = []
     if table:
         for key, _ in table.items():
             if not _ip_prefix_in_key(key):
@@ -51,12 +52,11 @@ def get_ip_from_interface_table(table, intf_name):
 
             iface_name, iface_cidr = key
             if iface_name.startswith(intf_name):
-                ip_str = iface_cidr.split("/")[0]
-                ip_addr = ipaddress.ip_address(ip_str)
-                if isinstance(ip_addr, ipaddress.IPv4Address):
-                    return ip_addr
+                ip_ntwrk = ipaddress.ip_network(iface_cidr, strict=False)
+                if isinstance(ip_ntwrk, ipaddress.IPv4Network):
+                    addresses.append(ip_ntwrk)
 
-    return None
+    return addresses
 
 # ============================== Classes ==============================
 
@@ -277,19 +277,24 @@ class ControlPlaneAclManager(daemon_base.DaemonBase):
 
     def get_chassis_midplane_interface_ip(self):
 
+        chassis_midplane_dev_name_command = "ip -4 -o addr show " + "eth1-midplane" +\
+                                             " | awk '{print $0}' | cut -d' ' -f2"
+
+        midplane_dev_name = self.run_commands([chassis_midplane_dev_name_command])
+
         chassis_midplane_ip_command = "ip -4 -o addr show " + "eth1-midplane" +\
                                  " | awk '{print $4}' | cut -d'/' -f1 | head -1"
-        return self.run_commands([chassis_midplane_ip_command])
-
+        midplane_ip = self.run_commands([chassis_midplane_ip_command])
+        return midplane_dev_name, midplane_ip
 
     def generate_allow_internal_chasis_midplane_traffic(self, namespace):
         allow_internal_chassis_midplane_traffic = []
         if not namespace:
-            chassis_midplane_ip = self.get_chassis_midplane_interface_ip()
+            midplane_dev_name, chassis_midplane_ip = self.get_chassis_midplane_interface_ip()
             if not chassis_midplane_ip:
                 return allow_internal_chassis_midplane_traffic
             allow_internal_chassis_midplane_traffic.append("iptables -A INPUT -s {} -d {} -j ACCEPT".format(chassis_midplane_ip, chassis_midplane_ip))
-            allow_internal_chassis_midplane_traffic.append("iptables -A INPUT -i eth1-midplane -j ACCEPT")
+            allow_internal_chassis_midplane_traffic.append("iptables -A INPUT -i {} -j ACCEPT".format(midplane_dev_name))
 
         return allow_internal_chassis_midplane_traffic
 
@@ -337,22 +342,41 @@ class ControlPlaneAclManager(daemon_base.DaemonBase):
         if self.DualToR:
             loopback_table = config_db_connector.get_table(self.LOOPBACK_TABLE)
             loopback_name = 'Loopback3'
-            loopback_address = get_ip_from_interface_table(loopback_table, loopback_name)
+            loopback_networks = get_ipv4_networks_from_interface_table(loopback_table, loopback_name)
+            if len(loopback_networks) == 0:
+                self.log_warning("Loopback 3 IP not available from DualToR active-active config")
+                return fwd_dualtor_grpc_traffic_from_host_to_soc_cmds
+
+            if not isinstance(loopback_networks[0], ipaddress.IPv4Network):
+                self.log_warning("Loopback 3 IP Network not available from DualToR active-active config")
+                return fwd_dualtor_grpc_traffic_from_host_to_soc_cmds
+
+            loopback_address = loopback_networks[0].network_address
             vlan_name = 'Vlan'
             vlan_table = config_db_connector.get_table(self.VLAN_INTF_TABLE)
+            vlan_networks = get_ipv4_networks_from_interface_table(vlan_table, vlan_name)
 
-            vlan_address = get_ip_from_interface_table(vlan_table, vlan_name)
+            if len(vlan_networks) == 0:
+                self.log_warning("Vlan IP not available from DualToR active-active config")
+                return fwd_dualtor_grpc_traffic_from_host_to_soc_cmds
+
             fwd_dualtor_grpc_traffic_from_host_to_soc_cmds.append(self.iptables_cmd_ns_prefix[namespace] + 
                     "iptables -t nat --flush POSTROUTING")
-            
+
             if loopback_address is not None:
                 mux_table = config_db_connector.get_table(self.CONFIG_MUX_CABLE)
                 mux_table_keys = mux_table.keys()
                 for key in mux_table_keys:
                     kvp = mux_table.get(key)
                     if 'cable_type' in kvp and kvp['cable_type'] == 'active-active':
-                        fwd_dualtor_grpc_traffic_from_host_to_soc_cmds.append(self.iptables_cmd_ns_prefix[namespace] + 
-                                "iptables -t nat -A POSTROUTING --destination {} --source {} -j SNAT --to-source {}".format(kvp['soc_ipv4'], vlan_address, loopback_address))
+                        soc_ipv4_str = kvp['soc_ipv4'].split("/")[0]
+                        soc_ipv4_addr = ipaddress.ip_address(soc_ipv4_str)
+                        for ip_network in vlan_networks:
+                            # Only add the vlan source IP specific soc IP address to IPtables
+                            if soc_ipv4_addr in ip_network:
+                                vlan_address = ip_network.network_address
+                                fwd_dualtor_grpc_traffic_from_host_to_soc_cmds.append(self.iptables_cmd_ns_prefix[namespace] + 
+                                        "iptables -t nat -A POSTROUTING --destination {} --source {} -j SNAT --to-source {}".format(str(soc_ipv4_addr), str(vlan_address), str(loopback_address)))
 
         return fwd_dualtor_grpc_traffic_from_host_to_soc_cmds
 

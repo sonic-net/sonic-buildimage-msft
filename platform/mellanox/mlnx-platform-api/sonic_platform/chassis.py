@@ -31,10 +31,10 @@ try:
     from . import utils
     from .device_data import DeviceDataManager
     import re
+    import time
 except ImportError as e:
     raise ImportError (str(e) + "- required module not found")
 
-MAX_SELECT_DELAY = 3600
 
 RJ45_TYPE = "RJ45"
 
@@ -59,8 +59,9 @@ HWMGMT_SYSTEM_ROOT = '/var/run/hw-management/system/'
 
 #reboot cause related definitions
 REBOOT_CAUSE_ROOT = HWMGMT_SYSTEM_ROOT
-
-REBOOT_CAUSE_FILE_LENGTH = 1
+REBOOT_CAUSE_MAX_WAIT_TIME = 45
+REBOOT_CAUSE_CHECK_INTERVAL = 5
+REBOOT_CAUSE_READY_FILE = '/run/hw-management/config/reset_attr_ready'
 
 REBOOT_TYPE_KEXEC_FILE = "/proc/cmdline"
 REBOOT_TYPE_KEXEC_PATTERN_WARM = ".*SONIC_BOOT_TYPE=(warm|fastfast).*"
@@ -387,26 +388,30 @@ class Chassis(ChassisBase):
             self.sfp_event.initialize()
 
         wait_for_ever = (timeout == 0)
+        # select timeout should be no more than 1000ms to ensure fast shutdown flow
+        select_timeout = 1000.0 if timeout >= 1000 else float(timeout)
         port_dict = {}
         error_dict = {}
-        if wait_for_ever:
-            timeout = MAX_SELECT_DELAY
-            while True:
-                status = self.sfp_event.check_sfp_status(port_dict, error_dict, timeout)
-                if bool(port_dict):
+        begin = time.time()
+        while True:
+            status = self.sfp_event.check_sfp_status(port_dict, error_dict, select_timeout)
+            if bool(port_dict):
+                break
+
+            if not wait_for_ever:
+                elapse = time.time() - begin
+                if elapse * 1000 > timeout:
                     break
-        else:
-            status = self.sfp_event.check_sfp_status(port_dict, error_dict, timeout)
 
         if status:
             if port_dict:
                 self.reinit_sfps(port_dict)
-            result_dict = {'sfp':port_dict}
+            result_dict = {'sfp': port_dict}
             if error_dict:
                 result_dict['sfp_error'] = error_dict
             return True, result_dict
         else:
-            return True, {'sfp':{}}
+            return True, {'sfp': {}}
 
     def reinit_sfps(self, port_dict):
         """
@@ -753,6 +758,16 @@ class Chassis(ChassisBase):
                 return 'fast-reboot'
         return None
 
+    def _wait_reboot_cause_ready(self):
+        max_wait_time = REBOOT_CAUSE_MAX_WAIT_TIME
+        while max_wait_time > 0:
+            if utils.read_int_from_file(REBOOT_CAUSE_READY_FILE, log_func=None) == 1:
+                return True
+            time.sleep(REBOOT_CAUSE_CHECK_INTERVAL)
+            max_wait_time -= REBOOT_CAUSE_CHECK_INTERVAL
+
+        return False
+
     def get_reboot_cause(self):
         """
         Retrieves the cause of the previous reboot
@@ -772,6 +787,10 @@ class Chassis(ChassisBase):
             reboot_cause = self._parse_warmfast_reboot_from_proc_cmdline()
             if reboot_cause:
                 return self.REBOOT_CAUSE_NON_HARDWARE, ''
+
+        if not self._wait_reboot_cause_ready():
+            logger.log_error("Hardware reboot cause is not ready")
+            return self.REBOOT_CAUSE_NON_HARDWARE, ''
 
         if not self.reboot_cause_initialized:
             self.initialize_reboot_cause()

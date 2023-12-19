@@ -36,7 +36,6 @@
                    ("database", "always_enabled", false, "always_enabled"),
                    ("lldp", "enabled", true, "enabled"),
                    ("pmon", "enabled", true, "enabled"),
-                   ("pmon", "enabled", false, "enabled"),
                    ("radv", "enabled", false, "enabled"),
                    ("snmp", "enabled", true, "enabled"),
                    ("swss", "enabled", false, "enabled"),
@@ -116,6 +115,17 @@
             "upper_class": "true",
             "digits_class": "true",
             "special_class": "true"
+        }
+    },
+    "KDUMP": {
+        "config": {
+{%- if sonic_asic_platform == "cisco-8000" %}
+            "enabled": "true",
+{% else %}
+            "enabled": "false",
+{% endif %}
+            "memory": "0M-2G:256M,2G-4G:320M,4G-8G:384M,8G-:448M",
+            "num_dumps": "3"
         }
     }
 }

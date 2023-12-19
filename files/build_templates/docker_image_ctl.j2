@@ -39,7 +39,7 @@ function updateSyslogConf()
         {%- if docker_container_name == "database" %}
         python -c "import jinja2, os; paths=['/usr/share/sonic/templates']; loader = jinja2.FileSystemLoader(paths); env = jinja2.Environment(loader=loader, trim_blocks=True); template_file='/usr/share/sonic/templates/rsyslog-container.conf.j2'; template = env.get_template(os.path.basename(template_file)); data=template.render({\"target_ip\":\"$TARGET_IP\",\"container_name\":\"$CONTAINER_NAME\"}); print(data)" > $TMP_FILE
         {%- else %}
-        sonic-cfggen -t /usr/share/sonic/templates/rsyslog-container.conf.j2 -a "{\"target_ip\": \"$TARGET_IP\", \"container_name\": \"$CONTAINER_NAME\" }"  > $TMP_FILE
+        sonic-cfggen -t /usr/share/sonic/templates/rsyslog-container.conf.j2 -a "{\"target_ip\": \"$TARGET_IP\", \"container_name\": \"$CONTAINER_NAME\", \"platform\": \"$PLATFORM\" }"  > $TMP_FILE
         {%- endif %}
         docker cp $TMP_FILE ${DOCKERNAME}:/etc/rsyslog.conf
         rm -rf $TMP_FILE
@@ -180,6 +180,9 @@ function postStartAction()
                    ip link add name ns-eth1"$NET_NS" type veth peer name eth1@"$NET_NS"
                    ip link set dev eth1@"$NET_NS" master br1
                    ip link set dev eth1@"$NET_NS" up
+                   # For chassis system where Linux bridge is used on supervisor for midplane communication
+                   # assign alternate name as eth1-midplane for generic design
+                   ip link property add dev br1 altname eth1-midplane
            else
                    ip link add name ns-eth1"$NET_NS" link eth1-midplane type macvlan mode bridge
            fi
@@ -238,6 +241,12 @@ function postStartAction()
                     $SONIC_CFGGEN -j /etc/sonic/config_db$DEV.json --write-to-db
                 fi
             fi
+
+            if [[ "$BOOT_TYPE" == "fast" ]]; then
+                # this is the case when base OS version does not support fast-reboot with reconciliation logic (dump.rdb is absent)
+                # In this case, we need to set the flag to indicate fast-reboot is in progress. Set the key to expire in 3 minutes
+                $SONIC_DB_CLI STATE_DB SET "FAST_REBOOT|system" "1" "EX" "180"
+            fi
         fi
 
         if [ -e /tmp/pending_config_migration ] || [ -e /tmp/pending_config_initialization ]; then
@@ -248,9 +257,18 @@ function postStartAction()
             # This flag will be set to "1" after DB migration/initialization is completed as part of config-setup
             $SONIC_DB_CLI CONFIG_DB SET "CONFIG_DB_INITIALIZED" "0"
         else
+            $SONIC_DB_CLI CONFIG_DB SET "CONFIG_DB_INITIALIZED" "0"
+            # this is not a first time boot to a new image. Datbase container starts w/ old pre-existing config
+            if [[ -x /usr/local/bin/db_migrator.py ]]; then
+                # Migrate the DB to the latest schema version if needed
+                if [ -z "$DEV" ]; then
+                    /usr/local/bin/db_migrator.py -o migrate
+                fi
+            fi
             # set CONFIG_DB_INITIALIZED to indicate end of config load and migration
             $SONIC_DB_CLI CONFIG_DB SET "CONFIG_DB_INITIALIZED" "1"
         fi
+
         # Add redis UDS to the redis group and give read/write access to the group
         REDIS_SOCK="/var/run/redis${DEV}/redis.sock"
     else
@@ -335,6 +353,18 @@ start() {
         MOUNTPATH="$MOUNTPATH/$DEV"
     fi
     {%- endif %}
+
+    {%- if docker_container_name == "swss" %}
+    # Insert "create_only_config_db_buffers" attribute
+    HWSKU_FOLDER="/usr/share/sonic/device/$PLATFORM/$HWSKU"
+    if [ -d "$HWSKU_FOLDER" ]; then
+        CREATE_ONLY_CONFIG_DB_BUFFERS_JSON="$HWSKU_FOLDER/create_only_config_db_buffers.json"
+        if [ -f "$CREATE_ONLY_CONFIG_DB_BUFFERS_JSON" ]; then
+            $SONIC_CFGGEN -j $CREATE_ONLY_CONFIG_DB_BUFFERS_JSON --write-to-db
+        fi
+    fi
+    {%- endif %}
+
     DOCKERCHECK=`docker inspect --type container ${DOCKERNAME} 2>/dev/null`
     if [ "$?" -eq "0" ]; then
         {%- if docker_container_name == "database" %}

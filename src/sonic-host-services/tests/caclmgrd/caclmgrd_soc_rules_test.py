@@ -29,7 +29,7 @@ class TestCaclmgrdSoc(TestCase):
         
     @parameterized.expand(CACLMGRD_SOC_TEST_VECTOR)
     @patchfs
-    @patch('caclmgrd.get_ipv4_networks_from_interface_table', MagicMock(return_value=[IPv4Network('10.10.10.18/24', strict=False), IPv4Network('10.10.11.18/24', strict=False)]))
+    @patch('caclmgrd.get_ipv4_networks_from_interface_table', MagicMock(return_value={IPv4Network('10.10.11.18/24', strict=False): IPv4Address('10.10.11.18') , IPv4Network('10.10.10.18/24', strict= False) : IPv4Address('10.10.10.18')}))
     def test_caclmgrd_soc(self, test_name, test_data, fs):
         if not os.path.exists(DBCONFIG_PATH):
             fs.create_file(DBCONFIG_PATH) # fake database_config.json
@@ -77,7 +77,7 @@ class TestCaclmgrdSoc(TestCase):
 
     @parameterized.expand(CACLMGRD_SOC_TEST_VECTOR_EMPTY)
     @patchfs
-    @patch('caclmgrd.get_ipv4_networks_from_interface_table', MagicMock(return_value=['10.10.10.10']))
+    @patch('caclmgrd.get_ipv4_networks_from_interface_table', MagicMock(return_value={'10.10.10.10': '10.10.10.1'}))
     def test_caclmgrd_soc_ip_string(self, test_name, test_data, fs):
         if not os.path.exists(DBCONFIG_PATH):
             fs.create_file(DBCONFIG_PATH) # fake database_config.json
@@ -106,4 +106,4 @@ class TestCaclmgrdSoc(TestCase):
         table = {("Vlan1000","10.10.10.1/32"): "val"}
         ip_addr = self.caclmgrd.get_ipv4_networks_from_interface_table(table, "Vlan")
 
-        assert (ip_addr == [IPv4Network('10.10.10.1/32')])
+        assert (ip_addr == {IPv4Network('10.10.10.1/32'): IPv4Address('10.10.10.1')})

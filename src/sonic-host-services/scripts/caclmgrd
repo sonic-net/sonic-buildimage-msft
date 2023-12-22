@@ -43,7 +43,7 @@ def _ip_prefix_in_key(key):
 
 def get_ipv4_networks_from_interface_table(table, intf_name):
     
-    addresses = []
+    addresses = {}
     if table:
         for key, _ in table.items():
             if not _ip_prefix_in_key(key):
@@ -53,8 +53,10 @@ def get_ipv4_networks_from_interface_table(table, intf_name):
             iface_name, iface_cidr = key
             if iface_name.startswith(intf_name):
                 ip_ntwrk = ipaddress.ip_network(iface_cidr, strict=False)
-                if isinstance(ip_ntwrk, ipaddress.IPv4Network):
-                    addresses.append(ip_ntwrk)
+                ip_str = iface_cidr.split("/")[0]
+                ip_addr = ipaddress.ip_address(ip_str)
+                if isinstance(ip_ntwrk, ipaddress.IPv4Network) and isinstance(ip_addr, ipaddress.IPv4Address):
+                    addresses[ip_ntwrk] = ip_addr
 
     return addresses
 
@@ -346,12 +348,14 @@ class ControlPlaneAclManager(daemon_base.DaemonBase):
             if len(loopback_networks) == 0:
                 self.log_warning("Loopback 3 IP not available from DualToR active-active config")
                 return fwd_dualtor_grpc_traffic_from_host_to_soc_cmds
+            
+            loopback_address_vals = list(loopback_networks.values())
 
-            if not isinstance(loopback_networks[0], ipaddress.IPv4Network):
+            if not isinstance(loopback_address_vals[0], ipaddress.IPv4Address):  
                 self.log_warning("Loopback 3 IP Network not available from DualToR active-active config")
                 return fwd_dualtor_grpc_traffic_from_host_to_soc_cmds
 
-            loopback_address = loopback_networks[0].network_address
+            loopback_address = loopback_address_vals[0]
             vlan_name = 'Vlan'
             vlan_table = config_db_connector.get_table(self.VLAN_INTF_TABLE)
             vlan_networks = get_ipv4_networks_from_interface_table(vlan_table, vlan_name)
@@ -371,10 +375,9 @@ class ControlPlaneAclManager(daemon_base.DaemonBase):
                     if 'cable_type' in kvp and kvp['cable_type'] == 'active-active':
                         soc_ipv4_str = kvp['soc_ipv4'].split("/")[0]
                         soc_ipv4_addr = ipaddress.ip_address(soc_ipv4_str)
-                        for ip_network in vlan_networks:
+                        for ip_network, vlan_address in vlan_networks.items():
                             # Only add the vlan source IP specific soc IP address to IPtables
                             if soc_ipv4_addr in ip_network:
-                                vlan_address = ip_network.network_address
                                 fwd_dualtor_grpc_traffic_from_host_to_soc_cmds.append(self.iptables_cmd_ns_prefix[namespace] + 
                                         "iptables -t nat -A POSTROUTING --destination {} --source {} -j SNAT --to-source {}".format(str(soc_ipv4_addr), str(vlan_address), str(loopback_address)))
 

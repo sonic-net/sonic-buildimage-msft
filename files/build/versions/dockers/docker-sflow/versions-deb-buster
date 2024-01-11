@@ -13,7 +13,7 @@ libipt2==2.0-2
 libpopt0==1.16-12
 libswsscommon-dbgsym==1.0.0
 libunwind8==1.2.1-10~deb10u1
-openssh-client==1:7.9p1-10+deb10u3
+openssh-client==1:7.9p1-10+deb10u4
 psample==1.1-1
 sflowtool==5.04
 sshpass==1.06-1

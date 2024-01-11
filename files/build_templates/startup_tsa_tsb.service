@@ -2,6 +2,7 @@
 Description= STARTUP TSA-TSB SERVICE
 Requires=updategraph.service database.service
 After=updategraph.service database.service
+Before=bgp.service
 ConditionPathExists=!/etc/sonic/chassisdb.conf
 
 [Service]

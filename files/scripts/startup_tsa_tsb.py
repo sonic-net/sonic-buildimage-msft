@@ -77,7 +77,7 @@ def config_tsa():
     return tsa_ena
 
 def config_tsb():
-    logger.log_info("startup_tsa_tsb: Configuring TSB")
+    logger.log_info("Configuring TSB")
     subprocess.check_output(['TSB']).strip()
     tsb_issued = True
     return

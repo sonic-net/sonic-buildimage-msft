@@ -172,9 +172,9 @@ logrotate==3.14.0-4
 lsof==4.91+dfsg-1
 make==4.2.1-1.2
 ndisc6==1.0.4-1
-openssh-client==1:7.9p1-10+deb10u3
-openssh-server==1:7.9p1-10+deb10u3
-openssh-sftp-server==1:7.9p1-10+deb10u3
+openssh-client==1:7.9p1-10+deb10u4
+openssh-server==1:7.9p1-10+deb10u4
+openssh-sftp-server==1:7.9p1-10+deb10u4
 patch==2.7.6-3+deb10u1
 pinentry-curses==1.1.0-2
 pkg-config==0.29-6

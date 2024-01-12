@@ -58,7 +58,7 @@ cpp==4:8.3.0-1
 cpp-8==8.3.0-6
 cppcheck==1.86-1
 cron==3.0pl1-134+deb10u1
-curl==7.64.0-4+deb10u7
+curl==7.64.0-4+deb10u8
 dbus==1.12.28-0+deb10u1
 dbus-user-session==1.12.28-0+deb10u1
 dconf-gsettings-backend==0.30.1-2
@@ -107,9 +107,9 @@ dwz==0.13-5~bpo10+1
 eatmydata==105-7
 emacsen-common==3.0.4
 equivs==2.2.0
-exim4-base==4.92-8+deb10u8
-exim4-config==4.92-8+deb10u8
-exim4-daemon-light==4.92-8+deb10u8
+exim4-base==4.92-8+deb10u9
+exim4-config==4.92-8+deb10u9
+exim4-daemon-light==4.92-8+deb10u9
 expat==2.2.6-2+deb10u6
 exuberant-ctags==1:5.9~svn20110310-12+deb10u1
 fakeroot==1.23-1
@@ -370,8 +370,8 @@ libcgi-pm-perl==4.40-1
 libcglib-java==3.2.10-1
 libcgraph6==2.40.1-6+deb10u1
 libchromaprint1==1.4.3-3
-libcjson-dev==1.7.10-1.1+deb10u1
-libcjson1==1.7.10-1.1+deb10u1
+libcjson-dev==1.7.10-1.1+deb10u2
+libcjson1==1.7.10-1.1+deb10u2
 libclang-common-7-dev==1:7.0.1-8+deb10u2
 libclang1-6.0==1:6.0.1-10
 libclang1-7==1:7.0.1-8+deb10u2
@@ -416,9 +416,9 @@ libcunit1-dev==2.1-3-dfsg-2+b12
 libcups2==2.2.10-6+deb10u9
 libcupsfilters1==1.21.6-5+deb10u1
 libcupsimage2==2.2.10-6+deb10u9
-libcurl3-gnutls==7.64.0-4+deb10u7
-libcurl4==7.64.0-4+deb10u7
-libcurl4-openssl-dev==7.64.0-4+deb10u7
+libcurl3-gnutls==7.64.0-4+deb10u8
+libcurl4==7.64.0-4+deb10u8
+libcurl4-openssl-dev==7.64.0-4+deb10u8
 libdaemon-dev==0.14-7
 libdaemon0==0.14-7
 libdata-dump-perl==1.23-1
@@ -433,7 +433,7 @@ libdbus-glib-1-2==0.110-4
 libdbus-glib-1-dev==0.110-4
 libdbus-glib-1-dev-bin==0.110-4
 libdconf1==0.30.1-2
-libde265-0==1.0.11-0+deb10u5
+libde265-0==1.0.11-0+deb10u6
 libdebhelper-perl==13.3.3~bpo10+1
 libdevel-callchecker-perl==0.008-1
 libdevel-caller-perl==2.06-2+b1
@@ -579,7 +579,6 @@ libgmpxx4ldbl==2:6.1.2+dfsg-4+deb10u1
 libgnutls-dane0==3.6.7-4+deb10u11
 libgnutls-openssl27==3.6.7-4+deb10u11
 libgnutls28-dev==3.6.7-4+deb10u11
-libgnutls30==3.6.7-4+deb10u11
 libgnutlsxx28==3.6.7-4+deb10u11
 libgomp1==8.3.0-6
 libgoogle-perftools4==2.7-1
@@ -812,7 +811,6 @@ libnanomsg5==1.1.5+dfsg-1
 libncurses-dev==6.1+20181013-2+deb10u5
 libncurses5-dev==6.1+20181013-2+deb10u5
 libncurses6==6.1+20181013-2+deb10u5
-libncursesw6==6.1+20181013-2+deb10u5
 libnet-dbus-perl==1.1.0-5+b1
 libnet-dns-perl==1.19-1
 libnet-dns-sec-perl==1.11-1
@@ -1142,7 +1140,6 @@ libtheora0==1.1.1+dfsg.1-15
 libtie-ixhash-perl==1.23-2
 libtiff5==4.1.0+git191117-2~deb10u8
 libtimedate-perl==2.3000-2+deb10u1
-libtinfo6==6.1+20181013-2+deb10u5
 libtinyxml2-6a==7.0.0+dfsg-1
 libtinyxml2-dev==7.0.0+dfsg-1
 libtk8.6==8.6.9-2
@@ -1405,9 +1402,9 @@ openjdk-11-jre-headless==11.0.21+9-1~deb10u1
 openmpi-bin==3.1.3-11
 openmpi-common==3.1.3-11
 opensp==1.5.2-13+b1
-openssh-client==1:7.9p1-10+deb10u3
-openssh-server==1:7.9p1-10+deb10u3
-openssh-sftp-server==1:7.9p1-10+deb10u3
+openssh-client==1:7.9p1-10+deb10u4
+openssh-server==1:7.9p1-10+deb10u4
+openssh-sftp-server==1:7.9p1-10+deb10u4
 openssl==1.1.1n-0+deb10u6
 ovmf==0~20181115.85588389-3+deb10u3
 packagekit==1.1.12-5

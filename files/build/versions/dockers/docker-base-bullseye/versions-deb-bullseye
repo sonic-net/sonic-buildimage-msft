@@ -6,7 +6,7 @@ bzip2==1.0.8-4
 ca-certificates==20210119
 cpp==4:10.2.1-1
 cpp-10==10.2.1-6
-curl==7.74.0-1.3+deb11u10
+curl==7.74.0-1.3+deb11u11
 dpkg-dev==1.20.13
 g++==4:10.2.1-1
 g++-10==10.2.1-6
@@ -29,7 +29,7 @@ libcc1-0==10.2.1-6
 libcrypt-dev==1:4.4.18-4
 libctf-nobfd0==2.35.2-2
 libctf0==2.35.2-2
-libcurl4==7.74.0-1.3+deb11u10
+libcurl4==7.74.0-1.3+deb11u11
 libdaemon0==0.14-7.1
 libdbus-1-3==1.12.28-0+deb11u1
 libdpkg-perl==1.20.13
@@ -92,7 +92,7 @@ libubsan1==10.2.1-6
 libwrap0==7.6.q-31
 libxtables12==1.8.7-1
 libzmq5==4.3.4-1
-linux-libc-dev==5.10.197-1
+linux-libc-dev==5.10.205-2
 lua-bitop==1.0.2-5
 lua-cjson==2.1.0+dfsg-2.1
 make==4.3-4.1

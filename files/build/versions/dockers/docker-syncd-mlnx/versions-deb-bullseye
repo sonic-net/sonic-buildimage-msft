@@ -9,7 +9,7 @@ libc-dev-bin==2.31-13+deb11u7
 libc6-dev==2.31-13+deb11u7
 libcbor0==0.5.0+dfsg-2
 libcrypt-dev==1:4.4.18-4
-libcurl3-gnutls==7.74.0-1.3+deb11u10
+libcurl3-gnutls==7.74.0-1.3+deb11u11
 libdebuginfod1==0.183-1
 libdw1==0.183-1
 libedit2==3.1-20191231-2+b1
@@ -44,12 +44,13 @@ libswsscommon-dbgsym==1.0.0
 libtirpc-dev==1.3.1-1+deb11u1
 libunwind8==1.3.2-2
 libxml2==2.9.10+dfsg-6.7+deb11u4
-linux-libc-dev==5.10.197-1
+linux-libc-dev==5.10.205-2
 mailcap==3.69
 mft==4.22.1-15
+mft-fwtrace-cfg==1.0.0
 mime-support==3.66
 mlnx-sai==1.mlnx.SAIBuild2205.25.1.27
-openssh-client==1:8.4p1-5+deb11u2
+openssh-client==1:8.4p1-5+deb11u3
 python-dev-is-python2==2.7.18-9
 python-is-python2==2.7.18-9
 python-is-python3==3.9.2-1

@@ -22,7 +22,7 @@ http://ftp.us.debian.org/debian/pool/main/s/scapy/python-scapy_2.4.0-2_all.deb==
 http://http.debian.net/debian/pool/main/h/hiredis/hiredis_0.14.1-1.debian.tar.xz==d0ef92c6f301ac5023f7953cf7816ff0
 http://http.debian.net/debian/pool/main/h/hiredis/hiredis_0.14.1-1.dsc==ef9e33d036c6dbb74a4ed12fefe2de8a
 http://http.debian.net/debian/pool/main/h/hiredis/hiredis_0.14.1.orig.tar.gz==3e1c541f9df28becb82a611e63e3e939
-http://www.mellanox.com/downloads/MFT/mft-4.22.1-15-x86_64-deb.tgz==fb58cd1a7dafef062a7c3ec8a398b5fd
+http://www.mellanox.com/downloads/MFT/mft-4.22.1-410-x86_64-deb.tgz==672444a5281376f7e4dac29ffc8782dd
 https://archive.apache.org/dist/thrift/0.14.1/thrift-0.14.1.tar.gz==c64434548438df2cb1e53fb27c600e85
 https://bootstrap.pypa.io/pip/2.7/get-pip.py==60e8267eb1b7bc71dc4843eb7bd294d3
 https://deb.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.123+deb11u1.dsc==27f74ae171f50bfc1116d3e23dbbab3f
@@ -149,9 +149,9 @@ https://sonicstorage.blob.core.windows.net/public/fips/bullseye/0.8/arm64/python
 https://sonicstorage.blob.core.windows.net/public/fips/bullseye/0.8/arm64/python3.9_3.9.2-1+fips_arm64.deb==4d6307dabcd3060235d6188cfa0346b8
 https://sonicstorage.blob.core.windows.net/public/fips/bullseye/0.8/arm64/symcrypt-openssl_0.8_arm64.deb==0ab2a6b1c621508eb5b39da92fd69060
 https://sonicstorage.blob.core.windows.net/public/sai/bcmpai/REL_3.8/3.8/libsaibroncos_3.8_amd64.deb==f7c3f0ed8c97c2572e3c2e59faaae4a8
-https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.62.4/libsaibcm-dev_7.1.62.4_amd64.deb==862df9a0b9f883dcc526edf61bc92d04
-https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.62.4/libsaibcm_7.1.62.4_amd64.deb==fbbfa7fbaac0dbcdccd4dc3f5397c0dd
-https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.66.4/libsaibcm_dnx_7.1.66.4_amd64.deb==8cd37ff6d98d4ca8c397c3484f103daa
+https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.73.4/libsaibcm-dev_7.1.73.4_amd64.deb==28eca348172e349285453c619f593d3e
+https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.73.4/libsaibcm_7.1.73.4_amd64.deb==234bf9dec541611540a3493225a33162
+https://sonicstorage.blob.core.windows.net/public/sai/bcmsai/REL_7.0_202205/7.1.73.4/libsaibcm_dnx_7.1.73.4_amd64.deb==9976a5419bdca5dfd6d8102ba52ec0e2
 https://storage.googleapis.com/golang/go1.14.2.linux-amd64.tar.gz==856d248e3ea8a287d13e5f6afd086282
 https://storage.googleapis.com/golang/go1.14.2.linux-arm64.tar.gz==e5f79b403701e00f20d13f0ea561b064
 https://storage.googleapis.com/golang/go1.14.2.linux-armv6l.tar.gz==04467414e783b18de4278e9f24baf4be

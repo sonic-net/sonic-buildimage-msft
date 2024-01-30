@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2023 NVIDIA CORPORATION & AFFILIATES.
+# Copyright (c) 2019-2024 NVIDIA CORPORATION & AFFILIATES.
 # Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -215,15 +215,15 @@ def create_indexable_thermal(rule, index, sysfs_folder, position, presence_cb=No
     index += rule.get('start_index', 1)
     name = rule['name'].format(index)
     temp_file = os.path.join(sysfs_folder, rule['temperature'].format(index))
-    _check_thermal_sysfs_existence(temp_file)
+    _check_thermal_sysfs_existence(temp_file, presence_cb)
     if 'high_threshold' in rule:
         high_th_file = os.path.join(sysfs_folder, rule['high_threshold'].format(index))
-        _check_thermal_sysfs_existence(high_th_file)
+        _check_thermal_sysfs_existence(high_th_file, presence_cb)
     else:
         high_th_file = None
     if 'high_critical_threshold' in rule:
         high_crit_th_file = os.path.join(sysfs_folder, rule['high_critical_threshold'].format(index))
-        _check_thermal_sysfs_existence(high_crit_th_file)
+        _check_thermal_sysfs_existence(high_crit_th_file, presence_cb)
     else:
         high_crit_th_file = None
     if not presence_cb:
@@ -244,15 +244,15 @@ def create_single_thermal(rule, sysfs_folder, position, presence_cb=None):
         return None
 
     temp_file = os.path.join(sysfs_folder, temp_file)
-    _check_thermal_sysfs_existence(temp_file)
+    _check_thermal_sysfs_existence(temp_file, presence_cb)
     if 'high_threshold' in rule:
         high_th_file = os.path.join(sysfs_folder, rule['high_threshold'])
-        _check_thermal_sysfs_existence(high_th_file)
+        _check_thermal_sysfs_existence(high_th_file, presence_cb)
     else:
         high_th_file = None
     if 'high_critical_threshold' in rule:
         high_crit_th_file = os.path.join(sysfs_folder, rule['high_critical_threshold'])
-        _check_thermal_sysfs_existence(high_crit_th_file)
+        _check_thermal_sysfs_existence(high_crit_th_file, presence_cb)
     else:
         high_crit_th_file = None
     name = rule['name']
@@ -262,7 +262,11 @@ def create_single_thermal(rule, sysfs_folder, position, presence_cb=None):
         return RemovableThermal(name, temp_file, high_th_file, high_crit_th_file, position, presence_cb)
 
 
-def _check_thermal_sysfs_existence(file_path):
+def _check_thermal_sysfs_existence(file_path, presence_cb):
+    if presence_cb:
+        status, _ = presence_cb()
+        if not status:
+            return
     if not os.path.exists(file_path):
         logger.log_error('Thermal sysfs {} does not exist'.format(file_path))
 

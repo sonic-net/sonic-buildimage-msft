@@ -373,7 +373,7 @@ class StaticRouteBfd(object):
 
         valid, is_ipv4, ip = check_ip(ip_prefix)
         if not valid:
-            log_err("invalid ip prefix for static route: ", key)
+            log_err("invalid ip prefix for static route: '%s'"%(key))
             return True
 
         arg_list  = lambda v: [x.strip() for x in v.split(',')] if len(v.strip()) != 0 else None

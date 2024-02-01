@@ -95,6 +95,23 @@ def intf_setup(dut):
         {}
     )
 
+@patch('staticroutebfd.main.log_err')
+def test_invalid_key(mocked_log_err):
+    dut = constructor()
+    intf_setup(dut)
+
+    set_del_test(dut, "srt",
+        "SET",
+        ("2.2.2/24", {
+            "bfd": "true",
+            "nexthop": "192.168.1.2 , 192.168.2.2, 192.168.3.2",
+            "ifname": "if1, if2, if3",
+        }),
+        {},
+        {}
+    )
+    mocked_log_err.assert_called_with("invalid ip prefix for static route: '2.2.2/24'")
+
 def test_set_del():
     dut = constructor()
     intf_setup(dut)

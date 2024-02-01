@@ -125,6 +125,9 @@ SONIC_DPKG_CACHE_SOURCE ?= /var/cache/sonic/artifacts
 DEFAULT_VS_PREPARE_MEM = yes
 
 
+# INCLUDE_SYSTEM_EVENTD - build docker-eventd for system eventd support
+INCLUDE_SYSTEM_EVENTD = y
+
 # INCLUDE_SYSTEM_TELEMETRY - build docker-sonic-telemetry for system telemetry support
 INCLUDE_SYSTEM_TELEMETRY = y
 

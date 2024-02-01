@@ -157,6 +157,10 @@ ifeq ($(SONIC_INCLUDE_SYSTEM_TELEMETRY),y)
 INCLUDE_SYSTEM_TELEMETRY = y
 endif
 
+ifeq ($(SONIC_INCLUDE_SYSTEM_EVENTD),y)
+INCLUDE_SYSTEM_EVENTD = y
+endif
+
 ifeq ($(SONIC_INCLUDE_RESTAPI),y)
 INCLUDE_RESTAPI = y
 endif
@@ -413,6 +417,7 @@ $(info "VS_PREPARE_MEM"                  : "$(VS_PREPARE_MEM)")
 $(info "INCLUDE_MGMT_FRAMEWORK"          : "$(INCLUDE_MGMT_FRAMEWORK)")
 $(info "INCLUDE_ICCPD"                   : "$(INCLUDE_ICCPD)")
 $(info "INCLUDE_SYSTEM_TELEMETRY"        : "$(INCLUDE_SYSTEM_TELEMETRY)")
+$(info "INCLUDE_SYSTEM_EVENTD"           : "$(INCLUDE_SYSTEM_EVENTD)")
 $(info "ENABLE_HOST_SERVICE_ON_START"    : "$(ENABLE_HOST_SERVICE_ON_START)")
 $(info "INCLUDE_RESTAPI"                 : "$(INCLUDE_RESTAPI)")
 $(info "INCLUDE_SFLOW"                   : "$(INCLUDE_SFLOW)")
@@ -1062,6 +1067,8 @@ $(addprefix $(TARGET_PATH)/, $(DOCKER_IMAGES)) : $(TARGET_PATH)/%.gz : .platform
 		sudo mount --bind $(PYTHON_DEBS_PATH) $($*.gz_PATH)/python-debs $(LOG)
 		sudo mount --bind $(PYTHON_WHEELS_PATH) $($*.gz_PATH)/python-wheels $(LOG)
 		# Export variables for j2. Use path for unique variable names, e.g. docker_orchagent_debs
+		export include_system_eventd="$(INCLUDE_SYSTEM_EVENTD)"
+		export build_reduce_image_size="$(BUILD_REDUCE_IMAGE_SIZE)"
 		$(eval export $(subst -,_,$(notdir $($*.gz_PATH)))_debs=$(shell printf "$(subst $(SPACE),\n,$(call expand,$($*.gz_DEPENDS),RDEPENDS))\n" | awk '!a[$$0]++'))
 		$(eval export $(subst -,_,$(notdir $($*.gz_PATH)))_pydebs=$(shell printf "$(subst $(SPACE),\n,$(call expand,$($*.gz_PYTHON_DEBS)))\n" | awk '!a[$$0]++'))
 		$(eval export $(subst -,_,$(notdir $($*.gz_PATH)))_whls=$(shell printf "$(subst $(SPACE),\n,$(call expand,$($*.gz_PYTHON_WHEELS)))\n" | awk '!a[$$0]++'))
@@ -1288,6 +1295,8 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 	export sonic_su_mode="$(SECURE_UPGRADE_MODE)"
 	export sonic_su_prod_signing_tool="/sonic/scripts/$(shell basename -- $(SECURE_UPGRADE_PROD_SIGNING_TOOL))"
 	export include_system_telemetry="$(INCLUDE_SYSTEM_TELEMETRY)"
+	export include_system_eventd="$(INCLUDE_SYSTEM_EVENTD)"
+	export build_reduce_image_size="$(BUILD_REDUCE_IMAGE_SIZE)"
 	export include_restapi="$(INCLUDE_RESTAPI)"
 	export include_nat="$(INCLUDE_NAT)"
 	export include_p4rt="$(INCLUDE_P4RT)"

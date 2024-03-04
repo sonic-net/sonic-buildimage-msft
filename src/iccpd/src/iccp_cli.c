@@ -117,7 +117,17 @@ int set_peer_link(int mid, const char* ifname)
                        csm->mlag_id, ifname);
     }
 
+    if (MAX_L_PORT_NAME > strlen(csm->peer_itf_name))
+    {
+        ICCPD_LOG_ERR(__FUNCTION__, "MAX=%d is greater than peer_itf_name length=%d", MAX_L_PORT_NAME, strlen(csm->peer_itf_name));
+        return MCLAG_ERROR;
+    }
     memset(csm->peer_itf_name, 0, MAX_L_PORT_NAME);
+    if (len > strlen(csm->peer_itf_name))
+    {
+        ICCPD_LOG_ERR(__FUNCTION__, "len=%d is greater than peer_itf_name length=%d", len, strlen(csm->peer_itf_name));
+        return MCLAG_ERROR;
+    }
     memcpy(csm->peer_itf_name, ifname, len);
 
     /* update peer-link link handler*/
@@ -208,8 +218,18 @@ int set_local_address(int mid, const char* addr)
 
     len = strlen(addr);
     memset(csm->sender_ip, 0, INET_ADDRSTRLEN);
+    if (len > strlen(csm->sender_ip))
+    {
+        ICCPD_LOG_ERR(__FUNCTION__, "len=%d is greater than sender_ip length=%d", len, strlen(csm->sender_ip));
+        return MCLAG_ERROR;
+    }
     memcpy(csm->sender_ip, addr, len);
     memset(csm->iccp_info.sender_name, 0, INET_ADDRSTRLEN);
+    if (len > strlen(csm->iccp_info.sender_name))
+    {
+        ICCPD_LOG_ERR(__FUNCTION__, "len=%d is greater than sender_name length=%d", len, strlen(csm->iccp_info.sender_name));
+        return MCLAG_ERROR;
+    }
     memcpy(csm->iccp_info.sender_name, addr, len);
 
     return 0;
@@ -268,6 +288,11 @@ int set_peer_address(int mid, const char* addr)
     }
 
     memset(csm->peer_ip, 0, INET_ADDRSTRLEN);
+    if (len > strlen(csm->peer_ip))
+    {
+        ICCPD_LOG_ERR(__FUNCTION__, "len=%d is greater than peer_ip length=%d", len, strlen(csm->peer_ip));
+        return MCLAG_ERROR;
+    }
     memcpy(csm->peer_ip, addr, len);
 
     return 0;

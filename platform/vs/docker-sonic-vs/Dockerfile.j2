@@ -9,10 +9,6 @@ RUN [ -f /etc/rsyslog.conf ] && sed -ri "s/%syslogtag%/$docker_container_name#%s
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y gnupg
-COPY ["sonic-dev.gpg.key", "/etc/apt/"]
-RUN apt-key add /etc/apt/sonic-dev.gpg.key
-RUN echo "deb http://packages.microsoft.com/repos/sonic-dev/ jessie main" >> /etc/apt/sources.list
-RUN apt-get update
 
 RUN apt-get install -y net-tools \
                        arping \
@@ -42,7 +38,6 @@ RUN apt-get install -y net-tools \
                        iptables \
                        jq \
                        libzmq5 \
-                       libzmq3-dev \
                        uuid-dev \
                        # For installing Python m2crypto package
                        # (these can be uninstalled after installation)
@@ -68,7 +63,11 @@ RUN apt-get install -y net-tools \
                        libasan6 \
                        {%- endif %}
                        dbus \
-                       redis-server
+                       redis-server \
+                       # For libkrb5-dev
+                       comerr-dev \
+                       libgssrpc4 \
+                       libkdb5-10
 
 # For sonic-config-engine Python 3 package
 # Install pyangbind here, outside sonic-config-engine dependencies, as pyangbind causes enum34 to be installed.
@@ -91,6 +90,8 @@ COPY {%- for deb in docker_sonic_vs_debs.split(' ') %} debs/{{ deb }}{%- endfor 
 # Install locally-built Debian packages and implicitly install their dependencies
 RUN dpkg_apt() { [ -f $1 ] && { dpkg -i $1 || apt-get -y install -f; } || return 1; }; {%- for deb in docker_sonic_vs_debs.split(' ') %} dpkg_apt /debs/{{ deb }};{%- endfor %}
 {%- endif %}
+
+RUN apt-get install -y libzmq3-dev
 
 {% if docker_sonic_vs_pydebs.strip() -%}
 # Copy locally-built Debian package dependencies

@@ -41,7 +41,7 @@
 	url = https://github.com/aristanetworks/sonic
 [submodule "src/sonic-platform-common"]
 	path = src/sonic-platform-common
-	url = https://github.com/sonic-net/sonic-platform-common
+	url = https://github.com/Azure/sonic-platform-common.msft
 	branch = 202305
 [submodule "src/sonic-platform-daemons"]
 	path = src/sonic-platform-daemons

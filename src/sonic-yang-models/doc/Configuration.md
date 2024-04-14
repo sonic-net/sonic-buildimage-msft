@@ -20,6 +20,7 @@ Table of Contents
          * [Cable length](#cable-length)  
          * [Chassis module](#chassis-module)         
          * [COPP_TABLE](#copp_table)  
+         * [Console](#console)
          * [CRM](#crm)  
          * [Data Plane L3 Interfaces](#data-plane-l3-interfaces)  
          * [DEFAULT_LOSSLESS_BUFFER_PARAMETER](#DEFAULT_LOSSLESS_BUFFER_PARAMETER)  
@@ -712,6 +713,29 @@ It currently allows user to administratively bring down a line-card or fabric-ca
 	 "trap_priority": "1"
       }
     }
+}
+```
+
+### Console
+
+```
+{
+"CONSOLE_PORT": {
+    "1": {
+        "baud_rate": "115200",
+        "flow_control": "0",
+        "remote_device": "host-1"
+    },
+    "2": {
+        "baud_rate": "9600",
+        "flow_control": "1"
+    }
+  },
+"CONSOLE_SWITCH": {
+    "console_mgmt": {
+        "enabled": "yes"
+    }
+  }
 }
 ```
 

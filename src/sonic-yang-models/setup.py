@@ -99,6 +99,7 @@ setup(
                          './yang-models/sonic-cable-length.yang',
                          './yang-models/sonic-chassis-module.yang',                         
                          './yang-models/sonic-copp.yang',
+                         './yang-models/sonic-console.yang',
                          './yang-models/sonic-crm.yang',
                          './yang-models/sonic-default-lossless-buffer-parameter.yang',
                          './yang-models/sonic-device_metadata.yang',

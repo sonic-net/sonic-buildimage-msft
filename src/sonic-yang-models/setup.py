@@ -130,6 +130,7 @@ setup(
                          './yang-models/sonic-policer.yang',
                          './yang-models/sonic-portchannel.yang',
                          './yang-models/sonic-pfcwd.yang',
+                         './yang-models/sonic-restapi.yang',
                          './yang-models/sonic-route-common.yang',
                          './yang-models/sonic-route-map.yang',
                          './yang-models/sonic-routing-policy-sets.yang',

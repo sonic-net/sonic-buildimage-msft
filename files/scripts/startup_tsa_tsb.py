@@ -48,14 +48,14 @@ def get_tsa_config(asic_ns):
 def get_tsa_status(num_asics):
     if num_asics > 1:
         counter = 0
-        for asic_id in range(int(asic_num)):
+        for asic_id in range(int(num_asics)):
             asic_ns = 'asic{}'.format(asic_id)
             sub_role = get_sub_role(asic_ns)
             if sub_role == 'FrontEnd':
                 tsa_enabled = get_tsa_config(asic_ns)
                 if tsa_enabled == 'false':
                     counter += 1
-        if counter == int(asic_num):
+        if counter == int(num_asics):
             return True;
     else:
         tsa_enabled = get_tsa_config("")

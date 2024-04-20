@@ -1,6 +1,8 @@
 import glob
+import hashlib
 import json
 import os
+import random
 import re
 import subprocess
 
@@ -38,6 +40,7 @@ ASIC_CONF_FILENAME = "asic.conf"
 PLATFORM_ENV_CONF_FILENAME = "platform_env.conf"
 FRONTEND_ASIC_SUB_ROLE = "FrontEnd"
 BACKEND_ASIC_SUB_ROLE = "BackEnd"
+VS_PLATFORM = "x86_64-kvm_x86_64-r0"
 
 # Chassis STATE_DB keys
 CHASSIS_INFO_TABLE = 'CHASSIS_INFO|chassis {}'
@@ -671,11 +674,40 @@ def get_all_namespaces(config_db=None):
 def _valid_mac_address(mac):
     return bool(re.match("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$", mac))
 
+def _modify_mac_for_asic(mac, namespace=None):
+    if namespace is None:
+        return mac
+    if namespace in get_namespaces():
+        asic_id = namespace[-1]
+        mac = mac[:-1] + asic_id
+    return mac
 
-def get_system_mac(namespace=None):
+def generate_mac_for_vs(hostname, namespace):
+    mac = None
+    if hostname is None:
+        # return random mac address randomize each byte of mac address b/w 0-255
+        mac = "22:%02x:%02x:%02x:%02x:%02x" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    else:
+        # Calculate the SHA-256 hash of the UTF-8 encoded hostname
+        hash_value = hashlib.sha256(hostname.encode('utf-8')).digest()
+
+        # Extract the last 6 bytes (48 bits) from the hash value
+        mac_bytes = hash_value[-6:]
+        # Set the first octet to 02 to indicate a locally administered MAC address
+        mac_bytes = bytearray([0x22, mac_bytes[1], mac_bytes[2], mac_bytes[3], mac_bytes[4], mac_bytes[5]])
+        # Format the MAC address with colons
+        mac = ':'.join('{:02x}'.format(byte) for byte in mac_bytes)
+
+    return _modify_mac_for_asic(mac, namespace)
+
+def get_system_mac(namespace=None, hostname=None):
     version_info = get_sonic_version_info()
+    platform = get_platform()
 
-    if (version_info['asic_type'] == 'mellanox'):
+    if platform == VS_PLATFORM:
+        return generate_mac_for_vs(hostname, namespace)
+
+    elif (version_info['asic_type'] == 'mellanox'):
         # With Mellanox ONIE release(2019.05-5.2.0012) and above
         # "onie_base_mac" was added to /host/machine.conf:
         # onie_base_mac=e4:1d:2d:44:5e:80
@@ -692,7 +724,6 @@ def get_system_mac(namespace=None):
         hw_mac_entry_cmds = [ "sudo decode-syseeprom -m" ]
     elif (version_info['asic_type'] == 'marvell'):
         # Try valid mac in eeprom, else fetch it from eth0
-        platform = get_platform()
         machine_key = "onie_machine"
         machine_vars = get_machine_info()
         if machine_vars is not None and machine_key in machine_vars:
@@ -703,7 +734,6 @@ def get_system_mac(namespace=None):
         hw_mac_entry_cmds = ["sudo decode-syseeprom -m", profile_cmd, "ip link show eth0 | grep ether | awk '{print $2}'"]
     elif (version_info['asic_type'] == 'cisco-8000'):
         # Try to get valid MAC from profile.ini first, else fetch it from syseeprom or eth0
-        platform = get_platform()
         if namespace is not None:
             profile_cmd = 'cat ' + HOST_DEVICE_PATH + '/' + platform + '/profile.ini | grep ' + namespace + 'switchMacAddress | cut -f2 -d='
         else:

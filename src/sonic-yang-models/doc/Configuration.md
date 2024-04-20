@@ -54,6 +54,7 @@ Table of Contents
          * [Queue](#queue)  
          * [Sflow](#sflow)
          * [Restapi](#restapi)
+         * [System Port](#system-port)  
          * [Tacplus Server](#tacplus-server)    
          * [TC to Priority group map](#tc-to-priority-group-map)  
          * [TC to Queue map](#tc-to-queue-map)    
@@ -1611,6 +1612,49 @@ Container side configuration:
     "pmon": {
         "rate_limit_interval": "300",
         "rate_limit_burst": "20000"
+    }
+  }
+}
+```
+
+### System Port
+Every port on the system requires a global representation, known as a System Port,
+and is listed in this table.
+
+```
+{
+"SYSTEM_PORT": {
+    "host227-4|asic0|Ethernet0": {
+        "core_index": "1",
+        "core_port_index": "1",
+        "num_voq": "8",
+        "speed": "100000",
+        "switch_id": "0",
+        "system_port_id": "1"
+    },
+    "host227-4|asic0|Ethernet4": {
+        "core_index": "1",
+        "core_port_index": "2",
+        "num_voq": "8",
+        "speed": "100000",
+        "switch_id": "0",
+        "system_port_id": "2"
+    },
+    "host227-5|asic0|Ethernet0": {
+        "core_index": "1",
+        "core_port_index": "1",
+        "num_voq": "8",
+        "speed": "100000",
+        "switch_id": "4",
+        "system_port_id": "80"
+    },
+    "host227-5|asic0|Ethernet4": {
+        "core_index": "1",
+        "core_port_index": "2",
+        "num_voq": "8",
+        "speed": "100000",
+        "switch_id": "4",
+        "system_port_id": "81"
     }
   }
 }

@@ -31,7 +31,7 @@ from config_samples import generate_sample_config, get_available_config
 from functools import partial
 from minigraph import minigraph_encoder, parse_xml, parse_device_desc_xml, parse_asic_sub_role, parse_asic_switch_type, parse_hostname
 from portconfig import get_port_config, get_breakout_mode
-from sonic_py_common.multi_asic import get_asic_id_from_name, get_asic_device_id, is_multi_asic
+from sonic_py_common.multi_asic import get_asic_id_from_name, get_asic_device_id
 from sonic_py_common import device_info
 from swsscommon.swsscommon import ConfigDBConnector, SonicDBConfig, ConfigDBPipeConnector
 
@@ -136,14 +136,6 @@ def ip_network(value):
     except:
         return "Invalid ip address %s" % value
     return r_v.network
-
-def load_namespace_config():
-    if is_multi_asic():
-        if not SonicDBConfig.isGlobalInit():
-            SonicDBConfig.initializeGlobalConfig()
-    else:
-        if not SonicDBConfig.isInit():
-            SonicDBConfig.initialize()
 
 class FormatConverter:
     """Convert config DB based schema to legacy minigraph based schema for backward capability.
@@ -309,7 +301,6 @@ def main():
         deep_update(data, hardware_data)
         if args.port_config is None:
             args.port_config = device_info.get_path_to_port_config_file(hwsku)
-        load_namespace_config()
         (ports, _, _) = get_port_config(hwsku, platform, args.port_config, asic_id)
         if ports is None:
             print('Failed to get port config', file=sys.stderr)
@@ -335,7 +326,6 @@ def main():
 
     if args.minigraph is not None:
         minigraph = args.minigraph
-        load_namespace_config()
         if platform:
             if args.port_config is not None:
                 deep_update(data, parse_xml(minigraph, platform, args.port_config, asic_name=asic_name, hwsku_config_file=args.hwsku_config))
@@ -363,7 +353,7 @@ def main():
         if args.namespace is None:
             configdb = ConfigDBPipeConnector(use_unix_socket_path=use_unix_sock, **db_kwargs)
         else:
-            load_namespace_config()
+            SonicDBConfig.load_sonic_global_db_config(namespace=args.namespace)
             configdb = ConfigDBPipeConnector(use_unix_socket_path=use_unix_sock, namespace=args.namespace, **db_kwargs)
 
         configdb.connect()
@@ -441,7 +431,7 @@ def main():
         if args.namespace is None:
             configdb = ConfigDBPipeConnector(use_unix_socket_path=True, **db_kwargs)
         else:
-            load_namespace_config()
+            SonicDBConfig.load_sonic_global_db_config(namespace=args.namespace)
             configdb = ConfigDBPipeConnector(use_unix_socket_path=True, namespace=args.namespace, **db_kwargs)
 
         configdb.connect(False)

@@ -845,6 +845,8 @@ instance is supported in SONiC.
 {
 "DEVICE_METADATA": {
         "localhost": {
+        "asic_id": "06:00.0",
+        "asic_name": "asic0",
         "hwsku": "Force10-S6100",
         "default_bgp_status": "up",
         "docker_routing_config_mode": "unified",
@@ -1375,7 +1377,10 @@ optional attributes.
             "speed": "40000",
             "link_training": "off",
             "laser_freq": "191300",
-            "tx_power": "-27.3"
+            "tx_power": "-27.3",
+            "core_id": "1",
+            "core_port_id": "1",
+            "num_voq": "8"
         },
         "Ethernet1": {
             "index": "1",
@@ -1387,7 +1392,10 @@ optional attributes.
             "speed": "40000",
             "link_training": "on",
             "laser_freq": "191300",
-            "tx_power": "-27.3"
+            "tx_power": "-27.3",
+            "core_id": "0",
+            "core_port_id": "14",
+            "num_voq": "8"
         },
         "Ethernet63": {
             "index": "63",
@@ -1397,7 +1405,10 @@ optional attributes.
             "alias": "fortyGigE1/4/16",
             "speed": "40000",
             "laser_freq": "191300",
-            "tx_power": "-27.3"
+            "tx_power": "-27.3",
+            "core_id": "0",
+            "core_port_id": "15",
+            "num_voq": "8"
         }
     }
 }

@@ -305,6 +305,7 @@
         "DEVICE_METADATA": {
             "localhost": {
                 "type": "ToRRouter",
+                "asic_id": "06:00.0",
                 "mac": "00:11:22:33:dd:5a",
                 "hostname": "asw.dc",
                 "bgp_asn": "64850",
@@ -449,6 +450,9 @@
         "PORT": {
             "Ethernet0": {
                 "alias": "Eth1/1",
+                "core_id": "1",
+                "core_port_id": "1",
+                "num_voq": "8",
                 "lanes": "65",
                 "description": "",
                 "speed": "11100",
@@ -464,6 +468,9 @@
             },
             "Ethernet1": {
                 "alias": "Eth1/2",
+                "core_id": "1",
+                "core_port_id": "1",
+                "num_voq": "8",
                 "lanes": "66",
                 "description": "",
                 "speed": "11100",
@@ -478,6 +485,9 @@
             },
             "Ethernet2": {
                 "alias": "Eth1/3",
+                "core_id": "1",
+                "core_port_id": "1",
+                "num_voq": "8",
                 "lanes": "67",
                 "description": "",
                 "speed": "11100",

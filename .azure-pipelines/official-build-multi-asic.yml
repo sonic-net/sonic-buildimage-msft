@@ -16,7 +16,7 @@ pr: none
 
 stages:
 - stage: Build
-  pool: sonicbld
+  pool: sonicbld-1es
   variables:
   - template: azure-pipelines-repd-build-variables.yml
   - name: CACHE_MODE
